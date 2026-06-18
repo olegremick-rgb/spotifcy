@@ -338,6 +338,57 @@
             box-shadow: 0 4px 20px rgba(29, 185, 84, 0.4);
         }
 
+        /* ===== ІМПОРТ ПЛЕЙЛИСТА ===== */
+        .import-section {
+            background: var(--fresfy-dark-card);
+            border-radius: var(--fresfy-radius-lg);
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 2px dashed var(--fresfy-dark-hover);
+        }
+
+        .import-section textarea {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: var(--fresfy-radius);
+            background: var(--fresfy-dark);
+            color: var(--fresfy-white);
+            font-size: 13px;
+            font-family: monospace;
+            resize: vertical;
+            min-height: 100px;
+            margin-bottom: 12px;
+        }
+        .import-section textarea:focus { outline: 2px solid var(--fresfy-green); }
+
+        .import-section .import-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .import-section .import-actions button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 50px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--fresfy-transition);
+        }
+
+        .btn-import {
+            background: var(--fresfy-green);
+            color: var(--fresfy-black);
+        }
+        .btn-import:hover { background: var(--fresfy-green-hover); transform: scale(1.04); }
+
+        .btn-import-example {
+            background: var(--fresfy-dark-hover);
+            color: var(--fresfy-gray);
+        }
+        .btn-import-example:hover { background: var(--fresfy-dark); color: var(--fresfy-white); }
+
         /* ===== СПИСОК ТРЕКІВ ===== */
         .track-list { display: flex; flex-direction: column; gap: 2px; }
         .track-item {
@@ -518,7 +569,7 @@
             background: var(--fresfy-dark-card);
             padding: 32px;
             border-radius: var(--fresfy-radius-lg);
-            max-width: 420px;
+            max-width: 500px;
             width: 92%;
             animation: modalSlide 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
             box-shadow: var(--fresfy-shadow);
@@ -1002,9 +1053,12 @@
             <div class="page-header">
                 <h2>📀 Плейлисти</h2>
                 <p>Створюйте та керуйте своїми плейлистами</p>
-                <div style="margin-top:12px;">
+                <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;">
                     <button id="createPlaylistBtn" class="btn-create">
                         ➕ Створити плейлист
+                    </button>
+                    <button id="importPlaylistBtn" class="btn-create" style="background:var(--fresfy-dark-hover);color:var(--fresfy-white);">
+                        📥 Імпорт плейлиста
                     </button>
                 </div>
             </div>
@@ -1012,7 +1066,7 @@
                 <div class="empty-state" style="grid-column:1/-1;">
                     <span class="empty-icon">📀</span>
                     <h4>Немає плейлистів</h4>
-                    <p>Створіть свій перший плейлист</p>
+                    <p>Створіть або імпортуйте плейлист</p>
                 </div>
             </div>
         </section>
@@ -1086,11 +1140,29 @@
     <!-- ===== МОДАЛЬНІ ВІКНА ===== -->
     <div class="modal-overlay" id="playlistModal">
         <div class="modal-content">
-            <h3>Створити плейлист</h3>
+            <h3 id="modalTitle">Створити плейлист</h3>
             <input type="text" id="playlistNameInput" placeholder="Назва плейлиста..." maxlength="30">
             <div class="modal-actions">
                 <button class="btn-secondary" id="closeModalBtn">Скасувати</button>
                 <button class="btn-primary" id="savePlaylistBtn">Створити</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="importModal">
+        <div class="modal-content" style="max-width:600px;">
+            <h3>📥 Імпорт плейлиста</h3>
+            <p style="color:var(--fresfy-gray);margin-bottom:12px;font-size:13px;">
+                Вставте список YouTube URL (кожен з нового рядка):
+            </p>
+            <textarea id="importTextarea" placeholder="https://youtube.com/watch?v=VIDEO_ID_1&#10;https://youtu.be/VIDEO_ID_2&#10;https://www.youtube.com/watch?v=VIDEO_ID_3" style="width:100%;padding:12px;border:none;border-radius:var(--fresfy-radius);background:var(--fresfy-dark);color:var(--fresfy-white);font-size:13px;font-family:monospace;resize:vertical;min-height:150px;margin-bottom:12px;"></textarea>
+            <input type="text" id="importPlaylistName" placeholder="Назва плейлиста (необов'язково)" maxlength="30" style="width:100%;padding:12px;border:none;border-radius:var(--fresfy-radius);background:var(--fresfy-dark);color:var(--fresfy-white);margin-bottom:12px;">
+            <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px;">
+                <button class="btn-import-example" id="importExampleBtn">📋 Приклад плейлиста</button>
+            </div>
+            <div class="modal-actions">
+                <button class="btn-secondary" id="closeImportBtn">Скасувати</button>
+                <button class="btn-primary" id="importSaveBtn">📥 Імпортувати</button>
             </div>
         </div>
     </div>
@@ -1115,7 +1187,7 @@
     <div class="toast" id="toast"></div>
 
     <!-- ================================================================
-    JAVASCRIPT - З РЕАЛЬНИМ ПОШУКОМ НА YOUTUBE
+    JAVASCRIPT - З ІМПОРТОМ ПЛЕЙЛИСТІВ
     ================================================================ -->
     <script>
         // ================================================================
@@ -1124,10 +1196,8 @@
         let youtubePlayer = null;
         let isYoutubeReady = false;
         let youtubeQueue = [];
-        let currentVideoId = null;
         let updateProgressInterval = null;
 
-        // Завантажуємо YouTube API
         const tag = document.createElement('script');
         tag.src = 'https://www.youtube.com/iframe_api';
         const firstScriptTag = document.getElementsByTagName('script')[0];
@@ -1201,225 +1271,10 @@
         function onPlayerError(event) {
             console.error('YouTube помилка:', event.data);
             showToast('❌ Помилка відтворення');
-            if (State.currentTrack && State.currentTrack.url) {
-                window.open(State.currentTrack.url, '_blank');
-            }
         }
 
         // ================================================================
-        // 2. ПОШУК НА YOUTUBE ЧЕРЕЗ БЕЗКОШТОВНЕ API
-        // ================================================================
-        // Використовуємо безкоштовний проксі для пошуку
-        async function searchYouTube(query) {
-            if (!query || query.trim().length < 2) {
-                showToast('Введіть мінімум 2 символи');
-                return;
-            }
-
-            const container = document.getElementById('searchResults');
-            container.innerHTML =
-                `<div class="loading-container"><div class="loading-spinner"></div><span>Пошук на YouTube...</span></div>`;
-
-            try {
-                // Використовуємо декілька безкоштовних проксі для пошуку
-                const searchUrl =
-                    `https://api.allorigins.win/raw?url=${encodeURIComponent(`https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`)}`;
-
-                const response = await fetch(searchUrl);
-                if (!response.ok) throw new Error('Помилка запиту');
-
-                const html = await response.text();
-
-                // Парсимо HTML для отримання videoId
-                const videoIds = extractVideoIds(html);
-
-                if (videoIds.length === 0) {
-                    // Якщо не знайшли, використовуємо альтернативний метод
-                    await searchYouTubeAlternative(query);
-                    return;
-                }
-
-                // Створюємо треки з знайдених videoId
-                const tracks = videoIds.slice(0, 15).map((id, index) => ({
-                    id: generateId(),
-                    title: `${query} - Трек ${index + 1}`,
-                    artist: 'YouTube',
-                    duration: 180 + Math.floor(Math.random() * 60),
-                    thumbnail: `https://i.ytimg.com/vi/${id}/default.jpg`,
-                    videoId: id,
-                    url: `https://youtube.com/watch?v=${id}`,
-                    is_offline: false
-                }));
-
-                renderTrackList('searchResults', tracks, `Результати для "${query}"`);
-
-            } catch (error) {
-                console.error('Помилка пошуку:', error);
-                // Використовуємо альтернативний метод
-                await searchYouTubeAlternative(query);
-            }
-        }
-
-        // Альтернативний метод пошуку через Invideo API
-        async function searchYouTubeAlternative(query) {
-            try {
-                // Використовуємо Invidious API (безкоштовний)
-                const invidiousUrls = [
-                    'https://invidious.snopyta.org',
-                    'https://invidious.kavin.rocks',
-                    'https://vid.puffyan.us'
-                ];
-
-                let data = null;
-                for (const url of invidiousUrls) {
-                    try {
-                        const response = await fetch(
-                            `${url}/api/v1/search?q=${encodeURIComponent(query)}&type=video&fields=videoId,title,author,lengthSeconds,thumbnail&limit=15`
-                        );
-                        if (response.ok) {
-                            data = await response.json();
-                            break;
-                        }
-                    } catch (e) { continue; }
-                }
-
-                if (data && data.length > 0) {
-                    const tracks = data.map(item => ({
-                        id: generateId(),
-                        title: item.title || `${query} - Трек`,
-                        artist: item.author || 'YouTube',
-                        duration: item.lengthSeconds || 180,
-                        thumbnail: item.thumbnail || `https://i.ytimg.com/vi/${item.videoId}/default.jpg`,
-                        videoId: item.videoId,
-                        url: `https://youtube.com/watch?v=${item.videoId}`,
-                        is_offline: false
-                    }));
-
-                    renderTrackList('searchResults', tracks, `Результати для "${query}"`);
-                    return;
-                }
-
-                // Якщо все провалилось - показуємо форму для вставки URL
-                showManualEntry();
-            } catch (error) {
-                console.error('Помилка альтернативного пошуку:', error);
-                showManualEntry();
-            }
-        }
-
-        function showManualEntry() {
-            const container = document.getElementById('searchResults');
-            container.innerHTML = `
-                <div style="padding:20px;background:var(--fresfy-dark-card);border-radius:var(--fresfy-radius);margin-bottom:16px;">
-                    <p style="color:var(--fresfy-gray);margin-bottom:12px;">📌 Вставте посилання на YouTube відео:</p>
-                    <div style="display:flex;gap:10px;flex-wrap:wrap;">
-                        <input type="text" id="customUrlInput" placeholder="https://youtube.com/watch?v=..." style="flex:1;padding:12px 16px;border:none;border-radius:50px;background:var(--fresfy-dark);color:var(--fresfy-white);min-width:200px;">
-                        <button id="customUrlBtn" style="padding:12px 24px;border:none;border-radius:50px;background:var(--fresfy-green);color:var(--fresfy-black);font-weight:700;cursor:pointer;">➕ Додати</button>
-                    </div>
-                </div>
-                <div style="color:var(--fresfy-gray);text-align:center;padding:20px;font-size:14px;">
-                    🔍 Спробуйте популярні запити:
-                    <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:12px;">
-                        <button class="filter-btn" onclick="searchYouTube('Noize MC')" style="padding:6px 16px;border:1px solid var(--fresfy-dark-hover);border-radius:20px;background:transparent;color:var(--fresfy-gray);cursor:pointer;">Noize MC</button>
-                        <button class="filter-btn" onclick="searchYouTube('Imagine Dragons')" style="padding:6px 16px;border:1px solid var(--fresfy-dark-hover);border-radius:20px;background:transparent;color:var(--fresfy-gray);cursor:pointer;">Imagine Dragons</button>
-                        <button class="filter-btn" onclick="searchYouTube('Post Malone')" style="padding:6px 16px;border:1px solid var(--fresfy-dark-hover);border-radius:20px;background:transparent;color:var(--fresfy-gray);cursor:pointer;">Post Malone</button>
-                        <button class="filter-btn" onclick="searchYouTube('Billie Eilish')" style="padding:6px 16px;border:1px solid var(--fresfy-dark-hover);border-radius:20px;background:transparent;color:var(--fresfy-gray);cursor:pointer;">Billie Eilish</button>
-                        <button class="filter-btn" onclick="searchYouTube('Ed Sheeran')" style="padding:6px 16px;border:1px solid var(--fresfy-dark-hover);border-radius:20px;background:transparent;color:var(--fresfy-gray);cursor:pointer;">Ed Sheeran</button>
-                        <button class="filter-btn" onclick="searchYouTube('Queen')" style="padding:6px 16px;border:1px solid var(--fresfy-dark-hover);border-radius:20px;background:transparent;color:var(--fresfy-gray);cursor:pointer;">Queen</button>
-                    </div>
-                </div>
-                <div id="searchResultsList" style="margin-top:16px;"></div>
-            `;
-
-            document.getElementById('customUrlBtn').addEventListener('click', () => {
-                const url = document.getElementById('customUrlInput').value.trim();
-                if (!url) { showToast('Введіть URL'); return; }
-                addCustomTrack(url);
-            });
-
-            document.getElementById('customUrlInput').addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
-                    document.getElementById('customUrlBtn').click();
-                }
-            });
-        }
-
-        // ================================================================
-        // 3. ЕКСТРАКЦІЯ VIDEO ID З HTML
-        // ================================================================
-        function extractVideoIds(html) {
-            const ids = [];
-            // Шукаємо всі videoId в HTML
-            const regex = /"videoId":"([^"]+)"/g;
-            let match;
-            while ((match = regex.exec(html)) !== null) {
-                if (!ids.includes(match[1])) {
-                    ids.push(match[1]);
-                }
-            }
-
-            // Якщо не знайшли, пробуємо інший патерн
-            if (ids.length === 0) {
-                const regex2 = /\/watch\?v=([a-zA-Z0-9_-]{11})/g;
-                while ((match = regex2.exec(html)) !== null) {
-                    if (!ids.includes(match[1])) {
-                        ids.push(match[1]);
-                    }
-                }
-            }
-
-            return ids;
-        }
-
-        // ================================================================
-        // 4. ДОДАВАННЯ КОРИСТУВАЦЬКОГО ТРЕКУ
-        // ================================================================
-        function addCustomTrack(url) {
-            let videoId = '';
-            const patterns = [
-                /(?:youtube\.com\/watch\?v=)([^&]+)/,
-                /(?:youtu\.be\/)([^?]+)/,
-                /(?:youtube\.com\/embed\/)([^?]+)/
-            ];
-
-            for (const pattern of patterns) {
-                const match = url.match(pattern);
-                if (match) {
-                    videoId = match[1];
-                    break;
-                }
-            }
-
-            if (!videoId) {
-                showToast('❌ Не вдалося знайти videoId в URL');
-                return;
-            }
-
-            // Перевіряємо чи це не Rickroll
-            if (videoId === 'dQw4w9WgXcQ') {
-                showToast('😅 Це Rickroll! Спробуйте інший трек');
-                return;
-            }
-
-            const track = {
-                id: generateId(),
-                title: `🎵 YouTube Track`,
-                artist: 'YouTube',
-                duration: 0,
-                thumbnail: `https://i.ytimg.com/vi/${videoId}/default.jpg`,
-                videoId: videoId,
-                url: `https://youtube.com/watch?v=${videoId}`,
-                is_offline: false
-            };
-
-            State.allTracks = State.allTracks || [];
-            State.allTracks.push(track);
-            playTrack(track);
-            showToast('✅ Трек додано!');
-        }
-
-        // ================================================================
-        // 5. СИСТЕМА АКАУНТІВ
+        // 2. СИСТЕМА АКАУНТІВ
         // ================================================================
         class AuthSystem {
             constructor() {
@@ -1538,7 +1393,7 @@
         const Auth = new AuthSystem();
 
         // ================================================================
-        // 6. СТАН ДОДАТКУ
+        // 3. СТАН ДОДАТКУ
         // ================================================================
         const State = {
             currentTrack: null,
@@ -1559,7 +1414,7 @@
         };
 
         // ================================================================
-        // 7. ЗБЕРІГАННЯ
+        // 4. ЗБЕРІГАННЯ
         // ================================================================
         const Storage = {
             save(key, data) {
@@ -1582,7 +1437,7 @@
         };
 
         // ================================================================
-        // 8. ДОПОМІЖНІ ФУНКЦІЇ
+        // 5. ДОПОМІЖНІ ФУНКЦІЇ
         // ================================================================
         function generateId() {
             return Date.now().toString(36) + Math.random().toString(36).substr(2, 6);
@@ -1604,13 +1459,10 @@
         }
 
         function getThumbnail(track) {
-            if (track.thumbnail && track.thumbnail.startsWith('http')) {
-                return track.thumbnail;
-            }
             if (track.videoId) {
                 return `https://i.ytimg.com/vi/${track.videoId}/default.jpg`;
             }
-            return `https://via.placeholder.com/120x120/1DB954/FFFFFF?text=${(track.title?.[0] || '?').toUpperCase()}`;
+            return `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'%3E%3Crect fill='%231DB954' width='120' height='120'/%3E%3Ctext x='50%25' y='50%25' font-size='48' text-anchor='middle' dy='.35em' fill='white'%3E🎵%3C/text%3E%3C/svg%3E`;
         }
 
         function getTrackId(track) {
@@ -1624,7 +1476,170 @@
         }
 
         // ================================================================
-        // 9. ВІДТВОРЕННЯ ЧЕРЕЗ YOUTUBE
+        // 6. ВИТЯГ VIDEO ID
+        // ================================================================
+        function extractVideoId(url) {
+            const patterns = [
+                /(?:youtube\.com\/watch\?v=)([^&]+)/,
+                /(?:youtu\.be\/)([^?]+)/,
+                /(?:youtube\.com\/embed\/)([^?]+)/
+            ];
+            for (const pattern of patterns) {
+                const match = url.match(pattern);
+                if (match) return match[1];
+            }
+            return null;
+        }
+
+        // ================================================================
+        // 7. ІМПОРТ ПЛЕЙЛИСТА
+        // ================================================================
+        function importPlaylistFromText(text, name) {
+            const lines = text.split('\n').filter(line => line.trim());
+            const tracks = [];
+            const videoIds = [];
+
+            for (const line of lines) {
+                const url = line.trim();
+                const videoId = extractVideoId(url);
+                if (videoId && !videoIds.includes(videoId) && videoId !== 'dQw4w9WgXcQ') {
+                    videoIds.push(videoId);
+                    tracks.push({
+                        id: generateId(),
+                        title: `Трек ${tracks.length + 1}`,
+                        artist: 'YouTube',
+                        duration: 0,
+                        videoId: videoId,
+                        url: `https://youtube.com/watch?v=${videoId}`,
+                        is_offline: false
+                    });
+                }
+            }
+
+            if (tracks.length === 0) {
+                showToast('❌ Не знайдено жодного валідного YouTube URL');
+                return false;
+            }
+
+            const playlistName = name || `Імпортований плейлист ${State.playlists.length + 1}`;
+
+            State.playlists.push({
+                id: generateId(),
+                name: playlistName,
+                tracks: tracks,
+                created_at: new Date().toISOString(),
+                imported: true
+            });
+
+            Storage.savePlaylists();
+            renderPlaylists();
+            showToast(`✅ Імпортовано ${tracks.length} треків у "${playlistName}"`);
+            return true;
+        }
+
+        // ================================================================
+        // 8. ПОШУК
+        // ================================================================
+        async function searchYouTube(query) {
+            if (!query || query.trim().length < 2) {
+                showToast('Введіть мінімум 2 символи');
+                return;
+            }
+
+            const container = document.getElementById('searchResults');
+            container.innerHTML =
+                `<div class="loading-container"><div class="loading-spinner"></div><span>Пошук...</span></div>`;
+
+            try {
+                // Використовуємо альтернативний метод пошуку
+                const searchUrl =
+                    `https://corsproxy.io/?${encodeURIComponent(`https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`)}`;
+
+                const response = await fetch(searchUrl, {
+                    headers: { 'User-Agent': 'Mozilla/5.0' }
+                });
+
+                if (!response.ok) throw new Error('Помилка запиту');
+
+                const html = await response.text();
+                const videoIds = [];
+                const regex = /"videoId":"([^"]+)"/g;
+                let match;
+                while ((match = regex.exec(html)) !== null) {
+                    if (!videoIds.includes(match[1]) && match[1] !== 'dQw4w9WgXcQ') {
+                        videoIds.push(match[1]);
+                    }
+                }
+
+                if (videoIds.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <span class="empty-icon">🔎</span>
+                            <h4>Не знайдено результатів</h4>
+                            <p>Спробуйте інший запит або вставте URL вручну</p>
+                        </div>
+                        <div style="padding:20px;background:var(--fresfy-dark-card);border-radius:var(--fresfy-radius);margin-top:16px;">
+                            <p style="color:var(--fresfy-gray);margin-bottom:12px;">📌 Або вставте посилання на YouTube:</p>
+                            <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                                <input type="text" id="manualUrlInput" placeholder="https://youtube.com/watch?v=..." style="flex:1;padding:12px 16px;border:none;border-radius:50px;background:var(--fresfy-dark);color:var(--fresfy-white);min-width:200px;">
+                                <button id="manualUrlBtn" style="padding:12px 24px;border:none;border-radius:50px;background:var(--fresfy-green);color:var(--fresfy-black);font-weight:700;cursor:pointer;">➕ Додати</button>
+                            </div>
+                        </div>
+                    `;
+
+                    document.getElementById('manualUrlBtn').addEventListener('click', () => {
+                        const url = document.getElementById('manualUrlInput').value.trim();
+                        if (!url) { showToast('Введіть URL'); return; }
+                        addCustomTrack(url);
+                    });
+                    document.getElementById('manualUrlInput').addEventListener('keypress', (e) => {
+                        if (e.key === 'Enter') document.getElementById('manualUrlBtn').click();
+                    });
+                    return;
+                }
+
+                const tracks = videoIds.slice(0, 15).map((id, index) => ({
+                    id: generateId(),
+                    title: `${query} - Результат ${index + 1}`,
+                    artist: 'YouTube',
+                    duration: 0,
+                    videoId: id,
+                    url: `https://youtube.com/watch?v=${id}`,
+                    is_offline: false
+                }));
+
+                renderTrackList('searchResults', tracks, `Результати для "${query}"`);
+
+            } catch (error) {
+                console.error('Помилка пошуку:', error);
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <span class="empty-icon">⚠️</span>
+                        <h4>Помилка пошуку</h4>
+                        <p>Спробуйте вставити URL вручну</p>
+                    </div>
+                    <div style="padding:20px;background:var(--fresfy-dark-card);border-radius:var(--fresfy-radius);margin-top:16px;">
+                        <p style="color:var(--fresfy-gray);margin-bottom:12px;">📌 Вставте посилання на YouTube:</p>
+                        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                            <input type="text" id="manualUrlInput2" placeholder="https://youtube.com/watch?v=..." style="flex:1;padding:12px 16px;border:none;border-radius:50px;background:var(--fresfy-dark);color:var(--fresfy-white);min-width:200px;">
+                            <button id="manualUrlBtn2" style="padding:12px 24px;border:none;border-radius:50px;background:var(--fresfy-green);color:var(--fresfy-black);font-weight:700;cursor:pointer;">➕ Додати</button>
+                        </div>
+                    </div>
+                `;
+
+                document.getElementById('manualUrlBtn2').addEventListener('click', () => {
+                    const url = document.getElementById('manualUrlInput2').value.trim();
+                    if (!url) { showToast('Введіть URL'); return; }
+                    addCustomTrack(url);
+                });
+                document.getElementById('manualUrlInput2').addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') document.getElementById('manualUrlBtn2').click();
+                });
+            }
+        }
+
+        // ================================================================
+        // 9. ВІДТВОРЕННЯ
         // ================================================================
         function playYoutubeTrack(track) {
             if (!track || !track.videoId) {
@@ -1632,70 +1647,30 @@
                 return;
             }
 
-            // Перевіряємо чи це не Rickroll
             if (track.videoId === 'dQw4w9WgXcQ') {
                 showToast('😅 Це Rickroll! Спробуйте інший трек');
                 return;
             }
 
             if (isYoutubeReady && youtubePlayer) {
-                youtubePlayer.loadVideoById(track.videoId);
-                youtubePlayer.playVideo();
-                State.isPlaying = true;
-                currentVideoId = track.videoId;
-                updatePlayerUI();
-                addToHistory(track);
+                try {
+                    youtubePlayer.loadVideoById(track.videoId);
+                    youtubePlayer.playVideo();
+                    State.isPlaying = true;
+                    updatePlayerUI();
+                    addToHistory(track);
+                } catch (e) {
+                    showToast('❌ Помилка відтворення');
+                    if (track.url) window.open(track.url, '_blank');
+                }
             } else {
                 youtubeQueue.push(track);
-                showToast('⏳ YouTube плеєр завантажується...');
-                if (typeof YT === 'undefined') {
-                    const tag2 = document.createElement('script');
-                    tag2.src = 'https://www.youtube.com/iframe_api';
-                    document.head.appendChild(tag2);
-                }
+                showToast('⏳ Завантаження плеєра...');
             }
-        }
-
-        // ================================================================
-        // 10. ОСНОВНІ ФУНКЦІЇ
-        // ================================================================
-
-        function loadPopular() {
-            const container = document.getElementById('popularTracks');
-            // Популярні треки з реальними відео ID
-            const demoTracks = [
-                { id: 'pop1', title: 'Noize MC - Всё как у людей', artist: 'Noize MC', duration: 210,
-                    videoId: 'Jr2lC80Uz9c', url: 'https://youtube.com/watch?v=Jr2lC80Uz9c' },
-                { id: 'pop2', title: 'Imagine Dragons - Believer', artist: 'Imagine Dragons', duration: 195,
-                    videoId: '7wtfhZwyrcc', url: 'https://youtube.com/watch?v=7wtfhZwyrcc' },
-                { id: 'pop3', title: 'Post Malone - Circles', artist: 'Post Malone', duration: 180,
-                    videoId: 'wXhTHyIgQ_U', url: 'https://youtube.com/watch?v=wXhTHyIgQ_U' },
-                { id: 'pop4', title: 'Billie Eilish - Bad Guy', artist: 'Billie Eilish', duration: 185,
-                    videoId: 'DIVGd6JPmhU', url: 'https://youtube.com/watch?v=DIVGd6JPmhU' },
-                { id: 'pop5', title: 'Ed Sheeran - Shape of You', artist: 'Ed Sheeran', duration: 200,
-                    videoId: 'JGwWNGJdvx8', url: 'https://youtube.com/watch?v=JGwWNGJdvx8' },
-                { id: 'pop6', title: 'Dua Lipa - Levitating', artist: 'Dua Lipa', duration: 175,
-                    videoId: 'TUVcZfQe-Kw', url: 'https://youtube.com/watch?v=TUVcZfQe-Kw' }
-            ];
-
-            const tracks = demoTracks.map(t => ({
-                ...t,
-                id: t.id || generateId(),
-                thumbnail: `https://i.ytimg.com/vi/${t.videoId}/default.jpg`,
-                is_offline: false
-            }));
-
-            renderTrackList('popularTracks', tracks, 'Популярне');
         }
 
         function playTrack(track, queue = null) {
             if (!track) { showToast('Трек не знайдено'); return; }
-
-            // Перевіряємо чи це не Rickroll
-            if (track.videoId === 'dQw4w9WgXcQ') {
-                showToast('😅 Це Rickroll! Спробуйте інший трек');
-                return;
-            }
 
             if (queue) {
                 State.currentQueue = queue;
@@ -1736,14 +1711,18 @@
             }
 
             if (isYoutubeReady && youtubePlayer) {
-                if (State.isPlaying) {
-                    youtubePlayer.pauseVideo();
-                    State.isPlaying = false;
-                } else {
-                    youtubePlayer.playVideo();
-                    State.isPlaying = true;
+                try {
+                    if (State.isPlaying) {
+                        youtubePlayer.pauseVideo();
+                        State.isPlaying = false;
+                    } else {
+                        youtubePlayer.playVideo();
+                        State.isPlaying = true;
+                    }
+                    updatePlayerUI();
+                } catch (e) {
+                    showToast('❌ Помилка керування плеєром');
                 }
-                updatePlayerUI();
             }
         }
 
@@ -1806,6 +1785,37 @@
             }
         }
 
+        function addCustomTrack(url) {
+            const videoId = extractVideoId(url);
+            if (!videoId) {
+                showToast('❌ Не вдалося знайти videoId');
+                return;
+            }
+
+            if (videoId === 'dQw4w9WgXcQ') {
+                showToast('😅 Rickroll! Спробуйте інший трек');
+                return;
+            }
+
+            const track = {
+                id: generateId(),
+                title: `🎵 Трек`,
+                artist: 'YouTube',
+                duration: 0,
+                videoId: videoId,
+                url: `https://youtube.com/watch?v=${videoId}`,
+                is_offline: false
+            };
+
+            State.allTracks = State.allTracks || [];
+            State.allTracks.push(track);
+            playTrack(track);
+            showToast('✅ Трек додано!');
+        }
+
+        // ================================================================
+        // 10. СТВОРЕННЯ ПЛЕЙЛИСТА
+        // ================================================================
         function createPlaylist(name) {
             if (!name || name.trim().length === 0) { showToast('Введіть назву'); return false; }
             if (State.playlists.find(p => p.name.toLowerCase() === name.trim().toLowerCase())) {
@@ -1850,6 +1860,32 @@
         // 11. UI РЕНДЕРИНГ
         // ================================================================
 
+        function loadPopular() {
+            const container = document.getElementById('popularTracks');
+            const demoTracks = [
+                { id: 'pop1', title: 'Noize MC - Всё как у людей', artist: 'Noize MC', duration: 210,
+                    videoId: 'Jr2lC80Uz9c', url: 'https://youtube.com/watch?v=Jr2lC80Uz9c' },
+                { id: 'pop2', title: 'Imagine Dragons - Believer', artist: 'Imagine Dragons', duration: 195,
+                    videoId: '7wtfhZwyrcc', url: 'https://youtube.com/watch?v=7wtfhZwyrcc' },
+                { id: 'pop3', title: 'Post Malone - Circles', artist: 'Post Malone', duration: 180,
+                    videoId: 'wXhTHyIgQ_U', url: 'https://youtube.com/watch?v=wXhTHyIgQ_U' },
+                { id: 'pop4', title: 'Billie Eilish - Bad Guy', artist: 'Billie Eilish', duration: 185,
+                    videoId: 'DIVGd6JPmhU', url: 'https://youtube.com/watch?v=DIVGd6JPmhU' },
+                { id: 'pop5', title: 'Ed Sheeran - Shape of You', artist: 'Ed Sheeran', duration: 200,
+                    videoId: 'JGwWNGJdvx8', url: 'https://youtube.com/watch?v=JGwWNGJdvx8' },
+                { id: 'pop6', title: 'Dua Lipa - Levitating', artist: 'Dua Lipa', duration: 175,
+                    videoId: 'TUVcZfQe-Kw', url: 'https://youtube.com/watch?v=TUVcZfQe-Kw' }
+            ];
+
+            const tracks = demoTracks.map(t => ({
+                ...t,
+                id: t.id || generateId(),
+                is_offline: false
+            }));
+
+            renderTrackList('popularTracks', tracks, 'Популярне');
+        }
+
         function renderTrackList(containerId, tracks, title = '') {
             const container = document.getElementById(containerId);
             if (!container) return;
@@ -1873,7 +1909,7 @@
                 const thumb = getThumbnail(track);
 
                 item.innerHTML = `
-                    <img class="track-thumb" src="${thumb}" alt="" loading="lazy" onerror="this.src='https://via.placeholder.com/120x120/1DB954/FFFFFF?text=🎵'">
+                    <img class="track-thumb" src="${thumb}" alt="" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22120%22 height=%22120%22 viewBox=%220 0 120 120%22%3E%3Crect fill=%22%231DB954%22 width=%22120%22 height=%22120%22/%3E%3Ctext x=%2250%%22 y=%2250%%22 font-size=%2248%22 text-anchor=%22middle%22 dy=%22.35em%22 fill=%22white%22%3E🎵%3C/text%3E%3C/svg%3E'">
                     <div class="track-info">
                         <div class="track-name">${track.title || 'Без назви'}</div>
                         <div class="track-artist">${track.artist || 'Невідомий'}</div>
@@ -1917,9 +1953,7 @@
 
                 item.querySelector('.btn-youtube').addEventListener('click', (e) => {
                     e.stopPropagation();
-                    if (track.url) {
-                        window.open(track.url, '_blank');
-                    }
+                    if (track.url) window.open(track.url, '_blank');
                 });
 
                 item.addEventListener('dblclick', () => playTrack(track, tracks));
@@ -1928,7 +1962,10 @@
         }
 
         function showPlaylistSelector(track) {
-            if (State.playlists.length === 0) { showToast('Спочатку створіть плейлист'); return; }
+            if (State.playlists.length === 0) {
+                showToast('Спочатку створіть плейлист');
+                return;
+            }
             const modal = document.getElementById('playlistModal');
             const content = modal.querySelector('.modal-content');
             const originalContent = content.innerHTML;
@@ -1971,7 +2008,7 @@
             if (!container) return;
             if (State.playlists.length === 0) {
                 container.innerHTML =
-                    `<div class="empty-state" style="grid-column:1/-1;"><span class="empty-icon">📀</span><h4>Немає плейлистів</h4><p>Створіть свій перший плейлист</p></div>`;
+                    `<div class="empty-state" style="grid-column:1/-1;"><span class="empty-icon">📀</span><h4>Немає плейлистів</h4><p>Створіть або імпортуйте плейлист</p></div>`;
                 return;
             }
             container.innerHTML = '';
@@ -1983,6 +2020,7 @@
                     <span class="playlist-icon">📀</span>
                     <h4>${playlist.name}</h4>
                     <div class="playlist-count">${playlist.tracks.length} треків</div>
+                    ${playlist.imported ? '<div style="font-size:10px;color:var(--fresfy-gray);margin-top:4px;">📥 Імпортований</div>' : ''}
                 `;
                 card.addEventListener('click', (e) => {
                     if (e.target.closest('.playlist-delete')) return;
@@ -2021,8 +2059,7 @@
                 document.getElementById('playerTrackName').textContent = State.currentTrack.title || 'Без назви';
                 document.getElementById('playerArtistName').textContent = State.currentTrack.artist || 'Невідомий';
                 const thumb = document.getElementById('playerThumb');
-                const thumbUrl = getThumbnail(State.currentTrack);
-                thumb.src = thumbUrl;
+                thumb.src = getThumbnail(State.currentTrack);
                 thumb.style.display = 'block';
             }
 
@@ -2094,7 +2131,7 @@
         }
 
         // ================================================================
-        // 13. ПОДІЇ ПЛЕЄРА
+        // 13. ПОДІЇ
         // ================================================================
         function setupPlayerEvents() {
             document.getElementById('playBtn').addEventListener('click', togglePlay);
@@ -2132,9 +2169,6 @@
             });
         }
 
-        // ================================================================
-        // 14. СИСТЕМА АВТОРИЗАЦІЇ UI
-        // ================================================================
         function setupAuth() {
             const authBtn = document.getElementById('authBtn');
             const loginModal = document.getElementById('loginModal');
@@ -2206,9 +2240,6 @@
             updateUI();
         }
 
-        // ================================================================
-        // 15. НАЛАШТУВАННЯ
-        // ================================================================
         function setupTheme() {
             const btn = document.getElementById('themeToggle');
             const isDark = State.theme === 'dark';
@@ -2246,7 +2277,8 @@
             const closeBtn = document.getElementById('closeModalBtn');
             const saveBtn = document.getElementById('savePlaylistBtn');
             const input = document.getElementById('playlistNameInput');
-            const close = () => { modal.classList.remove('show'); if (input) input.value = ''; };
+            const close = () => { modal.classList.remove('show');
+                input.value = ''; };
             if (closeBtn) closeBtn.addEventListener('click', close);
             if (saveBtn) {
                 saveBtn.addEventListener('click', () => {
@@ -2259,6 +2291,46 @@
                 });
             }
             modal.addEventListener('click', (e) => { if (e.target === modal) close(); });
+        }
+
+        function setupImportModal() {
+            const modal = document.getElementById('importModal');
+            const closeBtn = document.getElementById('closeImportBtn');
+            const saveBtn = document.getElementById('importSaveBtn');
+            const textarea = document.getElementById('importTextarea');
+            const nameInput = document.getElementById('importPlaylistName');
+            const exampleBtn = document.getElementById('importExampleBtn');
+
+            const close = () => {
+                modal.classList.remove('show');
+                textarea.value = '';
+                nameInput.value = '';
+            };
+
+            closeBtn.addEventListener('click', close);
+            modal.addEventListener('click', (e) => { if (e.target === modal) close(); });
+
+            saveBtn.addEventListener('click', () => {
+                const text = textarea.value;
+                const name = nameInput.value.trim();
+                if (!text.trim()) {
+                    showToast('Введіть URL треків');
+                    return;
+                }
+                importPlaylistFromText(text, name);
+                close();
+            });
+
+            exampleBtn.addEventListener('click', () => {
+                textarea.value =
+                    `https://youtube.com/watch?v=Jr2lC80Uz9c\nhttps://youtube.com/watch?v=7wtfhZwyrcc\nhttps://youtube.com/watch?v=wXhTHyIgQ_U\nhttps://youtube.com/watch?v=DIVGd6JPmhU`;
+                showToast('📋 Приклад додано');
+            });
+
+            document.getElementById('importPlaylistBtn').addEventListener('click', () => {
+                modal.classList.add('show');
+                textarea.focus();
+            });
         }
 
         function setupSearch() {
@@ -2287,14 +2359,15 @@
                 }
             });
             setupModalHandlers();
+            setupImportModal();
         }
 
         // ================================================================
-        // 16. ІНІЦІАЛІЗАЦІЯ
+        // 14. ІНІЦІАЛІЗАЦІЯ
         // ================================================================
         function init() {
             console.log('🎵 Fresfy - Spotify Style Music App');
-            console.log('📡 Використовується YouTube Iframe API');
+            console.log('📡 З імпортом плейлистів');
 
             setupTheme();
             setupOnlineStatus();
@@ -2327,7 +2400,7 @@
         }
 
         // ================================================================
-        // 17. ЗАПУСК
+        // 15. ЗАПУСК
         // ================================================================
         document.addEventListener('DOMContentLoaded', init);
 
@@ -2343,7 +2416,8 @@
             downloadTrack,
             createPlaylist,
             toggleFavorite,
-            addCustomTrack
+            addCustomTrack,
+            importPlaylistFromText
         };
     </script>
 </body>
