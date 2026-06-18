@@ -292,75 +292,33 @@
         .page-header p { color: var(--fresfy-gray); font-size: 14px; font-weight: 400; }
         .greeting { font-size: 14px; color: var(--fresfy-gray); margin-bottom: 4px; }
 
-        /* ===== ПОШУК ===== */
-        .search-box {
-            display: flex;
-            gap: 12px;
-            margin-top: 16px;
-            max-width: 700px;
-            flex-wrap: wrap;
-        }
-        .search-box input {
-            flex: 1;
-            padding: 14px 24px;
-            border: none;
-            border-radius: 50px;
-            background: var(--fresfy-dark-card);
-            color: var(--fresfy-white);
-            font-size: 15px;
-            font-weight: 500;
-            transition: var(--fresfy-transition);
-            min-width: 200px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-        .search-box input:focus {
-            outline: 2px solid var(--fresfy-green);
-            background: var(--fresfy-dark-hover);
-            transform: scale(1.01);
-        }
-        .search-box input::placeholder { color: var(--fresfy-gray); font-weight: 400; }
-        .search-box button {
-            padding: 14px 32px;
-            border: none;
-            border-radius: 50px;
-            background: var(--fresfy-green);
-            color: var(--fresfy-black);
-            font-weight: 700;
-            font-size: 14px;
-            cursor: pointer;
-            transition: var(--fresfy-transition);
-            white-space: nowrap;
-            box-shadow: 0 2px 12px rgba(29, 185, 84, 0.3);
-        }
-        .search-box button:hover {
-            background: var(--fresfy-green-hover);
-            transform: scale(1.04);
-            box-shadow: 0 4px 20px rgba(29, 185, 84, 0.4);
-        }
-
         /* ===== ІМПОРТ ПЛЕЙЛИСТА ===== */
         .import-section {
             background: var(--fresfy-dark-card);
             border-radius: var(--fresfy-radius-lg);
-            padding: 20px;
+            padding: 24px;
             margin-bottom: 20px;
-            border: 2px dashed var(--fresfy-dark-hover);
+            border: 2px solid var(--fresfy-dark-hover);
         }
 
+        .import-section h3 { margin-bottom: 12px; }
         .import-section textarea {
             width: 100%;
-            padding: 12px;
+            padding: 14px;
             border: none;
             border-radius: var(--fresfy-radius);
             background: var(--fresfy-dark);
             color: var(--fresfy-white);
-            font-size: 13px;
+            font-size: 14px;
             font-family: monospace;
             resize: vertical;
-            min-height: 100px;
+            min-height: 120px;
             margin-bottom: 12px;
+            border: 1px solid transparent;
+            transition: var(--fresfy-transition);
         }
-        .import-section textarea:focus { outline: 2px solid var(--fresfy-green); }
+        .import-section textarea:focus { outline: none; border-color: var(--fresfy-green); }
+        .import-section textarea::placeholder { color: var(--fresfy-gray); }
 
         .import-section .import-actions {
             display: flex;
@@ -369,7 +327,7 @@
         }
 
         .import-section .import-actions button {
-            padding: 10px 20px;
+            padding: 10px 24px;
             border: none;
             border-radius: 50px;
             font-weight: 600;
@@ -388,6 +346,13 @@
             color: var(--fresfy-gray);
         }
         .btn-import-example:hover { background: var(--fresfy-dark); color: var(--fresfy-white); }
+
+        .btn-import-clear {
+            background: transparent;
+            color: var(--fresfy-gray);
+            border: 1px solid var(--fresfy-dark-hover);
+        }
+        .btn-import-clear:hover { background: var(--fresfy-dark-hover); color: var(--fresfy-white); }
 
         /* ===== СПИСОК ТРЕКІВ ===== */
         .track-list { display: flex; flex-direction: column; gap: 2px; }
@@ -413,7 +378,6 @@
             object-fit: cover;
             flex-shrink: 0;
             background: var(--fresfy-dark-hover);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
         }
         .track-info { flex: 1; min-width: 0; }
         .track-name {
@@ -649,7 +613,6 @@
             object-fit: cover;
             flex-shrink: 0;
             background: var(--fresfy-dark-hover);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
         }
         .player-track-info { display: flex; flex-direction: column; min-width: 0; }
         .player-track-info .track-name {
@@ -762,7 +725,7 @@
             display: flex;
             align-items: center;
             gap: 12px;
-            min-width: 120px;
+            min-width: 140px;
             justify-content: flex-end;
             flex-shrink: 0;
         }
@@ -786,6 +749,14 @@
             width: 12px;
             height: 12px;
             background: var(--fresfy-white);
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        .player-volume input[type="range"]::-moz-range-thumb {
+            width: 12px;
+            height: 12px;
+            background: var(--fresfy-white);
+            border: none;
             border-radius: 50%;
             cursor: pointer;
         }
@@ -905,12 +876,11 @@
 
             .page-header h2 { font-size: 24px; }
             .playlists-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; }
-            .search-box { flex-direction: column; }
-            .search-box button { width: 100%; justify-content: center; }
             .track-item { padding: 8px 10px; gap: 10px; }
             .track-thumb { width: 40px; height: 40px; }
             .track-actions { opacity: 1; }
             .track-duration { display: none; }
+            .import-section textarea { min-height: 80px; font-size: 12px; }
         }
 
         @media (max-width: 480px) {
@@ -940,19 +910,15 @@
                 <span class="nav-icon">🏠</span>
                 <span>Головна</span>
             </button>
-            <button class="nav-item" data-page="search">
-                <span class="nav-icon">🔍</span>
-                <span>Пошук</span>
+            <button class="nav-item" data-page="playlists">
+                <span class="nav-icon">📀</span>
+                <span>Плейлисти</span>
+                <span class="nav-badge" id="playlistBadge">0</span>
             </button>
             <button class="nav-item" data-page="library">
                 <span class="nav-icon">📚</span>
                 <span>Бібліотека</span>
                 <span class="nav-badge" id="libraryBadge">0</span>
-            </button>
-            <button class="nav-item" data-page="playlists">
-                <span class="nav-icon">📀</span>
-                <span>Плейлисти</span>
-                <span class="nav-badge" id="playlistBadge">0</span>
             </button>
             <button class="nav-item" data-page="favorites">
                 <span class="nav-icon">❤️</span>
@@ -989,17 +955,17 @@
             <div class="page-header">
                 <p class="greeting" id="greetingText">Добрий вечір 👋</p>
                 <h2>Ваша музика завжди з вами</h2>
-                <p>Шукайте та слухайте улюблені треки</p>
+                <p>Створюйте плейлисти та слухайте улюблені треки</p>
             </div>
             <div class="section">
                 <div class="section-header">
-                    <h3>🔥 Популярне зараз</h3>
-                    <button class="see-all" onclick="loadPopular()">Оновити</button>
+                    <h3>🎵 Ваші плейлисти</h3>
                 </div>
-                <div id="popularTracks" class="track-list">
-                    <div class="loading-container">
-                        <div class="loading-spinner"></div>
-                        <span>Завантаження...</span>
+                <div id="homePlaylists" class="playlists-grid">
+                    <div class="empty-state" style="grid-column:1/-1;">
+                        <span class="empty-icon">📀</span>
+                        <h4>Немає плейлистів</h4>
+                        <p>Створіть або імпортуйте плейлист</p>
                     </div>
                 </div>
             </div>
@@ -1017,20 +983,39 @@
             </div>
         </section>
 
-        <section id="page-search" class="page">
+        <section id="page-playlists" class="page">
             <div class="page-header">
-                <h2>🔍 Пошук музики</h2>
-                <p>Шукайте будь-які треки на YouTube</p>
-                <div class="search-box">
-                    <input type="text" id="searchInput" placeholder="Введіть назву треку або виконавця...">
-                    <button id="searchBtn">🔍 Шукати</button>
+                <h2>📀 Плейлисти</h2>
+                <p>Створюйте, імпортуйте та керуйте своїми плейлистами</p>
+                <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;">
+                    <button id="createPlaylistBtn" class="btn-create">
+                        ➕ Створити плейлист
+                    </button>
                 </div>
             </div>
-            <div id="searchResults" class="track-list">
-                <div class="empty-state">
-                    <span class="empty-icon">🎵</span>
-                    <h4>Шукайте музику</h4>
-                    <p>Введіть назву треку або виконавця</p>
+
+            <!-- Секція імпорту -->
+            <div class="import-section">
+                <h3>📥 Імпорт плейлиста з YouTube</h3>
+                <p style="color:var(--fresfy-gray);margin-bottom:12px;font-size:13px;">
+                    Вставте список посилань на YouTube (кожне з нового рядка):
+                </p>
+                <textarea id="importTextarea" placeholder="https://youtube.com/watch?v=Jr2lC80Uz9c&#10;https://youtu.be/7wtfhZwyrcc&#10;https://www.youtube.com/watch?v=wXhTHyIgQ_U"></textarea>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
+                    <input type="text" id="importPlaylistName" placeholder="Назва плейлиста (необов'язково)" maxlength="30" style="flex:1;padding:10px 16px;border:none;border-radius:50px;background:var(--fresfy-dark);color:var(--fresfy-white);min-width:150px;">
+                </div>
+                <div class="import-actions">
+                    <button class="btn-import" id="importSaveBtn">📥 Імпортувати</button>
+                    <button class="btn-import-example" id="importExampleBtn">📋 Приклад</button>
+                    <button class="btn-import-clear" id="importClearBtn">🗑️ Очистити</button>
+                </div>
+            </div>
+
+            <div id="playlistsContainer" class="playlists-grid">
+                <div class="empty-state" style="grid-column:1/-1;">
+                    <span class="empty-icon">📀</span>
+                    <h4>Немає плейлистів</h4>
+                    <p>Створіть або імпортуйте плейлист</p>
                 </div>
             </div>
         </section>
@@ -1045,28 +1030,6 @@
                     <span class="empty-icon">📥</span>
                     <h4>Бібліотека порожня</h4>
                     <p>Завантажуйте треки, щоб слухати офлайн</p>
-                </div>
-            </div>
-        </section>
-
-        <section id="page-playlists" class="page">
-            <div class="page-header">
-                <h2>📀 Плейлисти</h2>
-                <p>Створюйте та керуйте своїми плейлистами</p>
-                <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;">
-                    <button id="createPlaylistBtn" class="btn-create">
-                        ➕ Створити плейлист
-                    </button>
-                    <button id="importPlaylistBtn" class="btn-create" style="background:var(--fresfy-dark-hover);color:var(--fresfy-white);">
-                        📥 Імпорт плейлиста
-                    </button>
-                </div>
-            </div>
-            <div id="playlistsContainer" class="playlists-grid">
-                <div class="empty-state" style="grid-column:1/-1;">
-                    <span class="empty-icon">📀</span>
-                    <h4>Немає плейлистів</h4>
-                    <p>Створіть або імпортуйте плейлист</p>
                 </div>
             </div>
         </section>
@@ -1140,29 +1103,11 @@
     <!-- ===== МОДАЛЬНІ ВІКНА ===== -->
     <div class="modal-overlay" id="playlistModal">
         <div class="modal-content">
-            <h3 id="modalTitle">Створити плейлист</h3>
+            <h3>Створити плейлист</h3>
             <input type="text" id="playlistNameInput" placeholder="Назва плейлиста..." maxlength="30">
             <div class="modal-actions">
                 <button class="btn-secondary" id="closeModalBtn">Скасувати</button>
                 <button class="btn-primary" id="savePlaylistBtn">Створити</button>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal-overlay" id="importModal">
-        <div class="modal-content" style="max-width:600px;">
-            <h3>📥 Імпорт плейлиста</h3>
-            <p style="color:var(--fresfy-gray);margin-bottom:12px;font-size:13px;">
-                Вставте список YouTube URL (кожен з нового рядка):
-            </p>
-            <textarea id="importTextarea" placeholder="https://youtube.com/watch?v=VIDEO_ID_1&#10;https://youtu.be/VIDEO_ID_2&#10;https://www.youtube.com/watch?v=VIDEO_ID_3" style="width:100%;padding:12px;border:none;border-radius:var(--fresfy-radius);background:var(--fresfy-dark);color:var(--fresfy-white);font-size:13px;font-family:monospace;resize:vertical;min-height:150px;margin-bottom:12px;"></textarea>
-            <input type="text" id="importPlaylistName" placeholder="Назва плейлиста (необов'язково)" maxlength="30" style="width:100%;padding:12px;border:none;border-radius:var(--fresfy-radius);background:var(--fresfy-dark);color:var(--fresfy-white);margin-bottom:12px;">
-            <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px;">
-                <button class="btn-import-example" id="importExampleBtn">📋 Приклад плейлиста</button>
-            </div>
-            <div class="modal-actions">
-                <button class="btn-secondary" id="closeImportBtn">Скасувати</button>
-                <button class="btn-primary" id="importSaveBtn">📥 Імпортувати</button>
             </div>
         </div>
     </div>
@@ -1187,7 +1132,7 @@
     <div class="toast" id="toast"></div>
 
     <!-- ================================================================
-    JAVASCRIPT - З ІМПОРТОМ ПЛЕЙЛИСТІВ
+    JAVASCRIPT - ВИПРАВЛЕНА ВЕРСІЯ
     ================================================================ -->
     <script>
         // ================================================================
@@ -1197,6 +1142,7 @@
         let isYoutubeReady = false;
         let youtubeQueue = [];
         let updateProgressInterval = null;
+        let isVolumeChanging = false;
 
         const tag = document.createElement('script');
         tag.src = 'https://www.youtube.com/iframe_api';
@@ -1249,7 +1195,10 @@
                             if (duration > 0) {
                                 document.getElementById('currentTime').textContent = formatTime(current);
                                 document.getElementById('totalTime').textContent = formatTime(duration);
-                                document.getElementById('progressControl').value = (current / duration) * 100;
+                                const progress = document.getElementById('progressControl');
+                                if (!progress.matches(':active')) {
+                                    progress.value = (current / duration) * 100;
+                                }
                             }
                         } catch (e) {}
                     }
@@ -1402,7 +1351,6 @@
             isPlaying: false,
             isRepeating: false,
 
-            allTracks: [],
             favorites: [],
             playlists: [],
             library: [],
@@ -1444,7 +1392,7 @@
         }
 
         function formatTime(seconds) {
-            if (!seconds || isNaN(seconds)) return '0:00';
+            if (!seconds || isNaN(seconds) || seconds === Infinity) return '0:00';
             const mins = Math.floor(seconds / 60);
             const secs = Math.floor(seconds % 60);
             return `${mins}:${secs.toString().padStart(2, '0')}`;
@@ -1458,9 +1406,9 @@
             toast._timeout = setTimeout(() => toast.classList.remove('show'), duration);
         }
 
-        function getThumbnail(track) {
-            if (track.videoId) {
-                return `https://i.ytimg.com/vi/${track.videoId}/default.jpg`;
+        function getThumbnail(videoId) {
+            if (videoId) {
+                return `https://i.ytimg.com/vi/${videoId}/default.jpg`;
             }
             return `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'%3E%3Crect fill='%231DB954' width='120' height='120'/%3E%3Ctext x='50%25' y='50%25' font-size='48' text-anchor='middle' dy='.35em' fill='white'%3E🎵%3C/text%3E%3C/svg%3E`;
         }
@@ -1475,9 +1423,6 @@
             document.getElementById('favoritesBadge').textContent = State.favorites.length;
         }
 
-        // ================================================================
-        // 6. ВИТЯГ VIDEO ID
-        // ================================================================
         function extractVideoId(url) {
             const patterns = [
                 /(?:youtube\.com\/watch\?v=)([^&]+)/,
@@ -1491,8 +1436,20 @@
             return null;
         }
 
+        function createTrackFromVideoId(videoId, title, artist) {
+            return {
+                id: generateId(),
+                title: title || `🎵 Трек`,
+                artist: artist || 'YouTube',
+                duration: 0,
+                videoId: videoId,
+                url: `https://youtube.com/watch?v=${videoId}`,
+                is_offline: false
+            };
+        }
+
         // ================================================================
-        // 7. ІМПОРТ ПЛЕЙЛИСТА
+        // 6. ІМПОРТ ПЛЕЙЛИСТА
         // ================================================================
         function importPlaylistFromText(text, name) {
             const lines = text.split('\n').filter(line => line.trim());
@@ -1504,15 +1461,7 @@
                 const videoId = extractVideoId(url);
                 if (videoId && !videoIds.includes(videoId) && videoId !== 'dQw4w9WgXcQ') {
                     videoIds.push(videoId);
-                    tracks.push({
-                        id: generateId(),
-                        title: `Трек ${tracks.length + 1}`,
-                        artist: 'YouTube',
-                        duration: 0,
-                        videoId: videoId,
-                        url: `https://youtube.com/watch?v=${videoId}`,
-                        is_offline: false
-                    });
+                    tracks.push(createTrackFromVideoId(videoId, `Трек ${tracks.length + 1}`, 'YouTube'));
                 }
             }
 
@@ -1521,7 +1470,7 @@
                 return false;
             }
 
-            const playlistName = name || `Імпортований плейлист ${State.playlists.length + 1}`;
+            const playlistName = name || `Плейлист ${State.playlists.length + 1}`;
 
             State.playlists.push({
                 id: generateId(),
@@ -1533,113 +1482,13 @@
 
             Storage.savePlaylists();
             renderPlaylists();
+            renderHomePlaylists();
             showToast(`✅ Імпортовано ${tracks.length} треків у "${playlistName}"`);
             return true;
         }
 
         // ================================================================
-        // 8. ПОШУК
-        // ================================================================
-        async function searchYouTube(query) {
-            if (!query || query.trim().length < 2) {
-                showToast('Введіть мінімум 2 символи');
-                return;
-            }
-
-            const container = document.getElementById('searchResults');
-            container.innerHTML =
-                `<div class="loading-container"><div class="loading-spinner"></div><span>Пошук...</span></div>`;
-
-            try {
-                // Використовуємо альтернативний метод пошуку
-                const searchUrl =
-                    `https://corsproxy.io/?${encodeURIComponent(`https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`)}`;
-
-                const response = await fetch(searchUrl, {
-                    headers: { 'User-Agent': 'Mozilla/5.0' }
-                });
-
-                if (!response.ok) throw new Error('Помилка запиту');
-
-                const html = await response.text();
-                const videoIds = [];
-                const regex = /"videoId":"([^"]+)"/g;
-                let match;
-                while ((match = regex.exec(html)) !== null) {
-                    if (!videoIds.includes(match[1]) && match[1] !== 'dQw4w9WgXcQ') {
-                        videoIds.push(match[1]);
-                    }
-                }
-
-                if (videoIds.length === 0) {
-                    container.innerHTML = `
-                        <div class="empty-state">
-                            <span class="empty-icon">🔎</span>
-                            <h4>Не знайдено результатів</h4>
-                            <p>Спробуйте інший запит або вставте URL вручну</p>
-                        </div>
-                        <div style="padding:20px;background:var(--fresfy-dark-card);border-radius:var(--fresfy-radius);margin-top:16px;">
-                            <p style="color:var(--fresfy-gray);margin-bottom:12px;">📌 Або вставте посилання на YouTube:</p>
-                            <div style="display:flex;gap:10px;flex-wrap:wrap;">
-                                <input type="text" id="manualUrlInput" placeholder="https://youtube.com/watch?v=..." style="flex:1;padding:12px 16px;border:none;border-radius:50px;background:var(--fresfy-dark);color:var(--fresfy-white);min-width:200px;">
-                                <button id="manualUrlBtn" style="padding:12px 24px;border:none;border-radius:50px;background:var(--fresfy-green);color:var(--fresfy-black);font-weight:700;cursor:pointer;">➕ Додати</button>
-                            </div>
-                        </div>
-                    `;
-
-                    document.getElementById('manualUrlBtn').addEventListener('click', () => {
-                        const url = document.getElementById('manualUrlInput').value.trim();
-                        if (!url) { showToast('Введіть URL'); return; }
-                        addCustomTrack(url);
-                    });
-                    document.getElementById('manualUrlInput').addEventListener('keypress', (e) => {
-                        if (e.key === 'Enter') document.getElementById('manualUrlBtn').click();
-                    });
-                    return;
-                }
-
-                const tracks = videoIds.slice(0, 15).map((id, index) => ({
-                    id: generateId(),
-                    title: `${query} - Результат ${index + 1}`,
-                    artist: 'YouTube',
-                    duration: 0,
-                    videoId: id,
-                    url: `https://youtube.com/watch?v=${id}`,
-                    is_offline: false
-                }));
-
-                renderTrackList('searchResults', tracks, `Результати для "${query}"`);
-
-            } catch (error) {
-                console.error('Помилка пошуку:', error);
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <span class="empty-icon">⚠️</span>
-                        <h4>Помилка пошуку</h4>
-                        <p>Спробуйте вставити URL вручну</p>
-                    </div>
-                    <div style="padding:20px;background:var(--fresfy-dark-card);border-radius:var(--fresfy-radius);margin-top:16px;">
-                        <p style="color:var(--fresfy-gray);margin-bottom:12px;">📌 Вставте посилання на YouTube:</p>
-                        <div style="display:flex;gap:10px;flex-wrap:wrap;">
-                            <input type="text" id="manualUrlInput2" placeholder="https://youtube.com/watch?v=..." style="flex:1;padding:12px 16px;border:none;border-radius:50px;background:var(--fresfy-dark);color:var(--fresfy-white);min-width:200px;">
-                            <button id="manualUrlBtn2" style="padding:12px 24px;border:none;border-radius:50px;background:var(--fresfy-green);color:var(--fresfy-black);font-weight:700;cursor:pointer;">➕ Додати</button>
-                        </div>
-                    </div>
-                `;
-
-                document.getElementById('manualUrlBtn2').addEventListener('click', () => {
-                    const url = document.getElementById('manualUrlInput2').value.trim();
-                    if (!url) { showToast('Введіть URL'); return; }
-                    addCustomTrack(url);
-                });
-                document.getElementById('manualUrlInput2').addEventListener('keypress', (e) => {
-                    if (e.key === 'Enter') document.getElementById('manualUrlBtn2').click();
-                });
-            }
-        }
-
-        // ================================================================
-        // 9. ВІДТВОРЕННЯ
+        // 7. ВІДТВОРЕННЯ
         // ================================================================
         function playYoutubeTrack(track) {
             if (!track || !track.videoId) {
@@ -1648,7 +1497,7 @@
             }
 
             if (track.videoId === 'dQw4w9WgXcQ') {
-                showToast('😅 Це Rickroll! Спробуйте інший трек');
+                showToast('😅 Rickroll! Спробуйте інший трек');
                 return;
             }
 
@@ -1785,36 +1634,8 @@
             }
         }
 
-        function addCustomTrack(url) {
-            const videoId = extractVideoId(url);
-            if (!videoId) {
-                showToast('❌ Не вдалося знайти videoId');
-                return;
-            }
-
-            if (videoId === 'dQw4w9WgXcQ') {
-                showToast('😅 Rickroll! Спробуйте інший трек');
-                return;
-            }
-
-            const track = {
-                id: generateId(),
-                title: `🎵 Трек`,
-                artist: 'YouTube',
-                duration: 0,
-                videoId: videoId,
-                url: `https://youtube.com/watch?v=${videoId}`,
-                is_offline: false
-            };
-
-            State.allTracks = State.allTracks || [];
-            State.allTracks.push(track);
-            playTrack(track);
-            showToast('✅ Трек додано!');
-        }
-
         // ================================================================
-        // 10. СТВОРЕННЯ ПЛЕЙЛИСТА
+        // 8. ПЛЕЙЛИСТИ
         // ================================================================
         function createPlaylist(name) {
             if (!name || name.trim().length === 0) { showToast('Введіть назву'); return false; }
@@ -1831,6 +1652,7 @@
             Storage.savePlaylists();
             showToast('✅ Плейлист створено');
             renderPlaylists();
+            renderHomePlaylists();
             return true;
         }
 
@@ -1845,6 +1667,7 @@
             Storage.savePlaylists();
             showToast(`✅ Додано до "${playlist.name}"`);
             renderPlaylists();
+            renderHomePlaylists();
             return true;
         }
 
@@ -1853,37 +1676,78 @@
             State.playlists = State.playlists.filter(p => p.id !== playlistId);
             Storage.savePlaylists();
             renderPlaylists();
+            renderHomePlaylists();
             showToast('🗑️ Плейлист видалено');
         }
 
         // ================================================================
-        // 11. UI РЕНДЕРИНГ
+        // 9. UI РЕНДЕРИНГ
         // ================================================================
 
-        function loadPopular() {
-            const container = document.getElementById('popularTracks');
-            const demoTracks = [
-                { id: 'pop1', title: 'Noize MC - Всё как у людей', artist: 'Noize MC', duration: 210,
-                    videoId: 'Jr2lC80Uz9c', url: 'https://youtube.com/watch?v=Jr2lC80Uz9c' },
-                { id: 'pop2', title: 'Imagine Dragons - Believer', artist: 'Imagine Dragons', duration: 195,
-                    videoId: '7wtfhZwyrcc', url: 'https://youtube.com/watch?v=7wtfhZwyrcc' },
-                { id: 'pop3', title: 'Post Malone - Circles', artist: 'Post Malone', duration: 180,
-                    videoId: 'wXhTHyIgQ_U', url: 'https://youtube.com/watch?v=wXhTHyIgQ_U' },
-                { id: 'pop4', title: 'Billie Eilish - Bad Guy', artist: 'Billie Eilish', duration: 185,
-                    videoId: 'DIVGd6JPmhU', url: 'https://youtube.com/watch?v=DIVGd6JPmhU' },
-                { id: 'pop5', title: 'Ed Sheeran - Shape of You', artist: 'Ed Sheeran', duration: 200,
-                    videoId: 'JGwWNGJdvx8', url: 'https://youtube.com/watch?v=JGwWNGJdvx8' },
-                { id: 'pop6', title: 'Dua Lipa - Levitating', artist: 'Dua Lipa', duration: 175,
-                    videoId: 'TUVcZfQe-Kw', url: 'https://youtube.com/watch?v=TUVcZfQe-Kw' }
-            ];
+        function renderHomePlaylists() {
+            const container = document.getElementById('homePlaylists');
+            if (!container) return;
+            const playlists = State.playlists.slice(0, 6);
+            if (playlists.length === 0) {
+                container.innerHTML =
+                    `<div class="empty-state" style="grid-column:1/-1;"><span class="empty-icon">📀</span><h4>Немає плейлистів</h4><p>Створіть або імпортуйте плейлист</p></div>`;
+                return;
+            }
+            container.innerHTML = '';
+            playlists.forEach(playlist => {
+                const card = document.createElement('div');
+                card.className = 'playlist-card';
+                const count = playlist.tracks.length;
+                card.innerHTML = `
+                    <span class="playlist-icon">📀</span>
+                    <h4>${playlist.name}</h4>
+                    <div class="playlist-count">${count} ${count === 1 ? 'трек' : 'треків'}</div>
+                `;
+                card.addEventListener('click', () => {
+                    if (playlist.tracks.length > 0) {
+                        playTrack(playlist.tracks[0], playlist.tracks);
+                    } else {
+                        showToast('Плейлист порожній');
+                    }
+                });
+                container.appendChild(card);
+            });
+        }
 
-            const tracks = demoTracks.map(t => ({
-                ...t,
-                id: t.id || generateId(),
-                is_offline: false
-            }));
-
-            renderTrackList('popularTracks', tracks, 'Популярне');
+        function renderPlaylists() {
+            const container = document.getElementById('playlistsContainer');
+            if (!container) return;
+            if (State.playlists.length === 0) {
+                container.innerHTML =
+                    `<div class="empty-state" style="grid-column:1/-1;"><span class="empty-icon">📀</span><h4>Немає плейлистів</h4><p>Створіть або імпортуйте плейлист</p></div>`;
+                return;
+            }
+            container.innerHTML = '';
+            State.playlists.forEach(playlist => {
+                const card = document.createElement('div');
+                card.className = 'playlist-card';
+                const count = playlist.tracks.length;
+                card.innerHTML = `
+                    <button class="playlist-delete" data-id="${playlist.id}">✕</button>
+                    <span class="playlist-icon">📀</span>
+                    <h4>${playlist.name}</h4>
+                    <div class="playlist-count">${count} ${count === 1 ? 'трек' : 'треків'}</div>
+                    ${playlist.imported ? '<div style="font-size:10px;color:var(--fresfy-gray);margin-top:4px;">📥 Імпортований</div>' : ''}
+                `;
+                card.addEventListener('click', (e) => {
+                    if (e.target.closest('.playlist-delete')) return;
+                    if (playlist.tracks.length > 0) {
+                        playTrack(playlist.tracks[0], playlist.tracks);
+                    } else {
+                        showToast('Плейлист порожній');
+                    }
+                });
+                card.querySelector('.playlist-delete').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    deletePlaylist(playlist.id);
+                });
+                container.appendChild(card);
+            });
         }
 
         function renderTrackList(containerId, tracks, title = '') {
@@ -1906,7 +1770,7 @@
 
                 const isFav = isFavorite(track);
                 const isDownloaded = State.library.some(t => getTrackId(t) === getTrackId(track));
-                const thumb = getThumbnail(track);
+                const thumb = getThumbnail(track.videoId);
 
                 item.innerHTML = `
                     <img class="track-thumb" src="${thumb}" alt="" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22120%22 height=%22120%22 viewBox=%220 0 120 120%22%3E%3Crect fill=%22%231DB954%22 width=%22120%22 height=%22120%22/%3E%3Ctext x=%2250%%22 y=%2250%%22 font-size=%2248%22 text-anchor=%22middle%22 dy=%22.35em%22 fill=%22white%22%3E🎵%3C/text%3E%3C/svg%3E'">
@@ -1966,75 +1830,44 @@
                 showToast('Спочатку створіть плейлист');
                 return;
             }
-            const modal = document.getElementById('playlistModal');
-            const content = modal.querySelector('.modal-content');
-            const originalContent = content.innerHTML;
+            // Просте вікно вибору
+            let options = '';
+            State.playlists.forEach(p => {
+                options +=
+                    `<button data-id="${p.id}" style="display:block;width:100%;padding:10px 14px;margin:4px 0;background:var(--fresfy-dark);border:none;border-radius:6px;color:var(--fresfy-white);cursor:pointer;text-align:left;font-size:13px;transition:var(--fresfy-transition);">
+                        📀 ${p.name} (${p.tracks.length} треків)
+                    </button>`;
+            });
 
-            const options = State.playlists.map(p =>
-                `<button data-id="${p.id}" style="display:block;width:100%;padding:10px 14px;margin:4px 0;background:var(--fresfy-dark);border:none;border-radius:6px;color:var(--fresfy-white);cursor:pointer;text-align:left;font-size:13px;transition:var(--fresfy-transition);">
-                    📀 ${p.name} (${p.tracks.length} треків)
-                </button>`
-            ).join('');
-
-            content.innerHTML = `
-                <h3>Додати до плейлиста</h3>
-                <p style="color:var(--fresfy-gray);margin-bottom:12px;font-size:13px;">${track.title} - ${track.artist}</p>
-                <div style="max-height:200px;overflow-y:auto;">${options}</div>
-                <div class="modal-actions" style="margin-top:12px;">
-                    <button class="btn-secondary" id="closeSelectorBtn">Скасувати</button>
+            // Створюємо тимчасове модальне вікно
+            const overlay = document.createElement('div');
+            overlay.className = 'modal-overlay show';
+            overlay.style.display = 'flex';
+            overlay.innerHTML = `
+                <div class="modal-content">
+                    <h3>Додати до плейлиста</h3>
+                    <p style="color:var(--fresfy-gray);margin-bottom:12px;font-size:13px;">${track.title} - ${track.artist}</p>
+                    <div style="max-height:200px;overflow-y:auto;">${options}</div>
+                    <div class="modal-actions" style="margin-top:12px;">
+                        <button class="btn-secondary" id="closeSelectorBtn">Скасувати</button>
+                    </div>
                 </div>
             `;
+            document.body.appendChild(overlay);
 
-            modal.classList.add('show');
-
-            content.querySelectorAll('[data-id]').forEach(btn => {
+            overlay.querySelectorAll('[data-id]').forEach(btn => {
                 btn.addEventListener('click', () => {
                     addToPlaylist(btn.dataset.id, track);
-                    modal.classList.remove('show');
-                    content.innerHTML = originalContent;
-                    setupModalHandlers();
+                    overlay.remove();
                 });
             });
 
-            content.querySelector('#closeSelectorBtn').addEventListener('click', () => {
-                modal.classList.remove('show');
-                content.innerHTML = originalContent;
-                setupModalHandlers();
+            overlay.querySelector('#closeSelectorBtn').addEventListener('click', () => {
+                overlay.remove();
             });
-        }
 
-        function renderPlaylists() {
-            const container = document.getElementById('playlistsContainer');
-            if (!container) return;
-            if (State.playlists.length === 0) {
-                container.innerHTML =
-                    `<div class="empty-state" style="grid-column:1/-1;"><span class="empty-icon">📀</span><h4>Немає плейлистів</h4><p>Створіть або імпортуйте плейлист</p></div>`;
-                return;
-            }
-            container.innerHTML = '';
-            State.playlists.forEach(playlist => {
-                const card = document.createElement('div');
-                card.className = 'playlist-card';
-                card.innerHTML = `
-                    <button class="playlist-delete" data-id="${playlist.id}">✕</button>
-                    <span class="playlist-icon">📀</span>
-                    <h4>${playlist.name}</h4>
-                    <div class="playlist-count">${playlist.tracks.length} треків</div>
-                    ${playlist.imported ? '<div style="font-size:10px;color:var(--fresfy-gray);margin-top:4px;">📥 Імпортований</div>' : ''}
-                `;
-                card.addEventListener('click', (e) => {
-                    if (e.target.closest('.playlist-delete')) return;
-                    if (playlist.tracks.length > 0) {
-                        playTrack(playlist.tracks[0], playlist.tracks);
-                    } else {
-                        showToast('Плейлист порожній');
-                    }
-                });
-                card.querySelector('.playlist-delete').addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    deletePlaylist(playlist.id);
-                });
-                container.appendChild(card);
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) overlay.remove();
             });
         }
 
@@ -2059,8 +1892,12 @@
                 document.getElementById('playerTrackName').textContent = State.currentTrack.title || 'Без назви';
                 document.getElementById('playerArtistName').textContent = State.currentTrack.artist || 'Невідомий';
                 const thumb = document.getElementById('playerThumb');
-                thumb.src = getThumbnail(State.currentTrack);
+                thumb.src = getThumbnail(State.currentTrack.videoId);
                 thumb.style.display = 'block';
+                thumb.onerror = function() {
+                    this.src =
+                        "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'%3E%3Crect fill='%231DB954' width='120' height='120'/%3E%3Ctext x='50%25' y='50%25' font-size='48' text-anchor='middle' dy='.35em' fill='white'%3E🎵%3C/text%3E%3C/svg%3E";
+                };
             }
 
             document.querySelectorAll('.track-item').forEach(el => {
@@ -2098,7 +1935,7 @@
         }
 
         // ================================================================
-        // 12. НАВІГАЦІЯ
+        // 10. НАВІГАЦІЯ
         // ================================================================
         function navigateTo(page) {
             State.currentPage = page;
@@ -2110,8 +1947,11 @@
             });
             switch (page) {
                 case 'home':
-                    loadPopular();
+                    renderHomePlaylists();
                     renderHistory();
+                    break;
+                case 'playlists':
+                    renderPlaylists();
                     break;
                 case 'library':
                     renderLibrary();
@@ -2119,19 +1959,14 @@
                 case 'favorites':
                     renderFavorites();
                     break;
-                case 'playlists':
-                    renderPlaylists();
-                    break;
                 case 'history':
                     renderHistory();
-                    break;
-                case 'search':
                     break;
             }
         }
 
         // ================================================================
-        // 13. ПОДІЇ
+        // 11. ПОДІЇ
         // ================================================================
         function setupPlayerEvents() {
             document.getElementById('playBtn').addEventListener('click', togglePlay);
@@ -2150,8 +1985,29 @@
                 }
             });
 
+            // Гучність
+            const volumeControl = document.getElementById('volumeControl');
+            volumeControl.addEventListener('input', (e) => {
+                const val = parseFloat(e.target.value);
+                if (youtubePlayer && youtubePlayer.setVolume) {
+                    youtubePlayer.setVolume(val * 100);
+                }
+            });
+
+            // Прогрес
+            const progressControl = document.getElementById('progressControl');
+            progressControl.addEventListener('input', (e) => {
+                if (youtubePlayer && youtubePlayer.getDuration) {
+                    const duration = youtubePlayer.getDuration();
+                    if (duration > 0) {
+                        const time = (e.target.value / 100) * duration;
+                        youtubePlayer.seekTo(time, true);
+                    }
+                }
+            });
+
             document.addEventListener('keydown', (e) => {
-                if (e.target.tagName === 'INPUT') return;
+                if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
                 switch (e.code) {
                     case 'Space':
                         e.preventDefault();
@@ -2164,6 +2020,18 @@
                     case 'ArrowLeft':
                         e.preventDefault();
                         prevTrack();
+                        break;
+                    case 'ArrowUp':
+                        e.preventDefault();
+                        const volUp = document.getElementById('volumeControl');
+                        volUp.value = Math.min(1, parseFloat(volUp.value) + 0.1);
+                        volUp.dispatchEvent(new Event('input'));
+                        break;
+                    case 'ArrowDown':
+                        e.preventDefault();
+                        const volDown = document.getElementById('volumeControl');
+                        volDown.value = Math.max(0, parseFloat(volDown.value) - 0.1);
+                        volDown.dispatchEvent(new Event('input'));
                         break;
                 }
             });
@@ -2197,6 +2065,7 @@
                     renderFavorites();
                     renderPlaylists();
                     renderHistory();
+                    renderHomePlaylists();
                 } else {
                     openLogin();
                 }
@@ -2217,6 +2086,7 @@
                     renderFavorites();
                     renderPlaylists();
                     renderHistory();
+                    renderHomePlaylists();
                 }
             });
 
@@ -2231,6 +2101,7 @@
                     renderFavorites();
                     renderPlaylists();
                     renderHistory();
+                    renderHomePlaylists();
                 }
             });
 
@@ -2293,22 +2164,12 @@
             modal.addEventListener('click', (e) => { if (e.target === modal) close(); });
         }
 
-        function setupImportModal() {
-            const modal = document.getElementById('importModal');
-            const closeBtn = document.getElementById('closeImportBtn');
-            const saveBtn = document.getElementById('importSaveBtn');
+        function setupImport() {
             const textarea = document.getElementById('importTextarea');
             const nameInput = document.getElementById('importPlaylistName');
+            const saveBtn = document.getElementById('importSaveBtn');
             const exampleBtn = document.getElementById('importExampleBtn');
-
-            const close = () => {
-                modal.classList.remove('show');
-                textarea.value = '';
-                nameInput.value = '';
-            };
-
-            closeBtn.addEventListener('click', close);
-            modal.addEventListener('click', (e) => { if (e.target === modal) close(); });
+            const clearBtn = document.getElementById('importClearBtn');
 
             saveBtn.addEventListener('click', () => {
                 const text = textarea.value;
@@ -2318,31 +2179,28 @@
                     return;
                 }
                 importPlaylistFromText(text, name);
-                close();
+                textarea.value = '';
+                nameInput.value = '';
             });
 
             exampleBtn.addEventListener('click', () => {
                 textarea.value =
-                    `https://youtube.com/watch?v=Jr2lC80Uz9c\nhttps://youtube.com/watch?v=7wtfhZwyrcc\nhttps://youtube.com/watch?v=wXhTHyIgQ_U\nhttps://youtube.com/watch?v=DIVGd6JPmhU`;
+                    `https://youtube.com/watch?v=Jr2lC80Uz9c\nhttps://youtube.com/watch?v=7wtfhZwyrcc\nhttps://youtube.com/watch?v=wXhTHyIgQ_U\nhttps://youtube.com/watch?v=DIVGd6JPmhU\nhttps://youtube.com/watch?v=JGwWNGJdvx8`;
                 showToast('📋 Приклад додано');
             });
 
-            document.getElementById('importPlaylistBtn').addEventListener('click', () => {
-                modal.classList.add('show');
-                textarea.focus();
+            clearBtn.addEventListener('click', () => {
+                textarea.value = '';
+                nameInput.value = '';
+                showToast('🗑️ Очищено');
             });
-        }
 
-        function setupSearch() {
-            const input = document.getElementById('searchInput');
-            const btn = document.getElementById('searchBtn');
-            const doSearch = () => {
-                const query = input.value.trim();
-                if (!query) { showToast('Введіть запит'); return; }
-                searchYouTube(query);
-            };
-            btn.addEventListener('click', doSearch);
-            input.addEventListener('keypress', (e) => { if (e.key === 'Enter') doSearch(); });
+            // Ctrl+Enter для імпорту
+            textarea.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && e.ctrlKey) {
+                    saveBtn.click();
+                }
+            });
         }
 
         function setupOtherEvents() {
@@ -2359,20 +2217,19 @@
                 }
             });
             setupModalHandlers();
-            setupImportModal();
+            setupImport();
         }
 
         // ================================================================
-        // 14. ІНІЦІАЛІЗАЦІЯ
+        // 12. ІНІЦІАЛІЗАЦІЯ
         // ================================================================
         function init() {
             console.log('🎵 Fresfy - Spotify Style Music App');
-            console.log('📡 З імпортом плейлистів');
+            console.log('📡 З імпортом плейлистів та регулюванням гучності');
 
             setupTheme();
             setupOnlineStatus();
             setupPlayerEvents();
-            setupSearch();
             setupOtherEvents();
             setupAuth();
 
@@ -2383,7 +2240,7 @@
                 });
             });
 
-            loadPopular();
+            renderHomePlaylists();
             renderLibrary();
             renderFavorites();
             renderPlaylists();
@@ -2400,7 +2257,7 @@
         }
 
         // ================================================================
-        // 15. ЗАПУСК
+        // 13. ЗАПУСК
         // ================================================================
         document.addEventListener('DOMContentLoaded', init);
 
@@ -2411,12 +2268,9 @@
             togglePlay,
             nextTrack,
             prevTrack,
-            searchYouTube,
-            loadPopular,
             downloadTrack,
             createPlaylist,
             toggleFavorite,
-            addCustomTrack,
             importPlaylistFromText
         };
     </script>
