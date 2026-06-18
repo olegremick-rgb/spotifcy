@@ -8,7 +8,7 @@
     
     <style>
         /* ================================================================
-           FRESFY - СТИЛІ SPOTIFY
+           FRESFY - ПОВНІ СТИЛІ
            ================================================================ */
         :root {
             --fresfy-green: #1DB954;
@@ -37,11 +37,7 @@
             --fresfy-shadow: 0 8px 32px rgba(0,0,0,0.1);
         }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
@@ -111,10 +107,7 @@
             background-clip: text;
         }
 
-        nav {
-            flex: 1;
-            padding: 0 8px;
-        }
+        nav { flex: 1; padding: 0 8px; }
 
         .nav-item {
             display: flex;
@@ -215,6 +208,62 @@
         }
         #themeToggle:hover { background: var(--fresfy-dark-hover); color: var(--fresfy-white); }
 
+        /* ===== АВТОРИЗАЦІЯ ===== */
+        .auth-section {
+            padding: 8px 0;
+            margin-top: 4px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 12px;
+            background: var(--fresfy-dark-hover);
+            border-radius: var(--fresfy-radius);
+            margin-bottom: 8px;
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--fresfy-green);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 14px;
+            color: var(--fresfy-black);
+            flex-shrink: 0;
+        }
+
+        .user-name {
+            font-size: 13px;
+            font-weight: 600;
+            flex: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .auth-btn {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: var(--fresfy-radius);
+            font-weight: 700;
+            font-size: 13px;
+            cursor: pointer;
+            transition: var(--fresfy-transition);
+            background: var(--fresfy-green);
+            color: var(--fresfy-black);
+        }
+
+        .auth-btn:hover { background: var(--fresfy-green-hover); transform: scale(1.02); }
+        .auth-btn.logout { background: var(--fresfy-dark-hover); color: var(--fresfy-gray); }
+        .auth-btn.logout:hover { background: #f44336; color: white; }
+
         /* ===== ОСНОВНИЙ КОНТЕНТ ===== */
         #mainContent {
             margin-left: var(--sidebar-width);
@@ -242,28 +291,6 @@
         }
         .page-header p { color: var(--fresfy-gray); font-size: 14px; font-weight: 400; }
         .greeting { font-size: 14px; color: var(--fresfy-gray); margin-bottom: 4px; }
-
-        /* ===== СЕКЦІЇ ===== */
-        .section { margin-bottom: 36px; }
-        .section-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 16px;
-        }
-        .section-header h3 { font-size: 20px; font-weight: 700; letter-spacing: -0.3px; }
-        .section-header .see-all {
-            color: var(--fresfy-gray);
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: var(--fresfy-transition);
-            background: none;
-            border: none;
-            padding: 4px 8px;
-            border-radius: 4px;
-        }
-        .section-header .see-all:hover { color: var(--fresfy-white); background: var(--fresfy-dark-hover); }
 
         /* ===== ПОШУК ===== */
         .search-box {
@@ -791,6 +818,8 @@
             .nav-badge { display: none; }
             .status-badge span { display: none; }
             .sidebar-footer-top { justify-content: center; }
+            .user-name { display: none; }
+            .auth-btn { font-size: 11px; padding: 8px; }
 
             #mainContent {
                 margin-left: var(--sidebar-width);
@@ -881,6 +910,14 @@
                 </div>
                 <button id="themeToggle" title="Змінити тему">🌙</button>
             </div>
+            <!-- ===== СИСТЕМА АКАУНТІВ ===== -->
+            <div class="auth-section">
+                <div id="userInfo" style="display:none;" class="user-info">
+                    <div class="user-avatar" id="userAvatar">U</div>
+                    <span class="user-name" id="userName">Користувач</span>
+                </div>
+                <button class="auth-btn" id="authBtn">🔑 Увійти</button>
+            </div>
         </div>
     </aside>
 
@@ -890,7 +927,7 @@
         <!-- ГОЛОВНА -->
         <section id="page-home" class="page active">
             <div class="page-header">
-                <p class="greeting">Добрий вечір 👋</p>
+                <p class="greeting" id="greetingText">Добрий вечір 👋</p>
                 <h2>Ваша музика завжди з вами</h2>
                 <p>Шукайте та слухайте улюблені треки безкоштовно</p>
             </div>
@@ -1051,37 +1088,173 @@
         </div>
     </div>
 
+    <!-- ===== МОДАЛЬНЕ ВІКНО ЛОГІНУ ===== -->
+    <div class="modal-overlay" id="loginModal">
+        <div class="modal-content">
+            <h3>🔑 Вхід до Fresfy</h3>
+            <p style="color:var(--fresfy-gray);margin-bottom:16px;font-size:14px;">Створіть акаунт або увійдіть</p>
+            <input type="text" id="loginUsername" placeholder="Ім'я користувача" maxlength="20">
+            <input type="password" id="loginPassword" placeholder="Пароль" maxlength="30">
+            <div style="display:flex;gap:8px;margin-bottom:16px;">
+                <button class="btn-primary" id="loginBtn" style="flex:1;border:none;padding:12px;border-radius:50px;font-weight:700;cursor:pointer;background:var(--fresfy-green);color:var(--fresfy-black);">Увійти</button>
+                <button class="btn-secondary" id="registerBtn" style="flex:1;border:none;padding:12px;border-radius:50px;font-weight:700;cursor:pointer;background:var(--fresfy-dark-hover);color:var(--fresfy-gray);">Зареєструватись</button>
+            </div>
+            <div class="modal-actions">
+                <button class="btn-secondary" id="closeLoginBtn">Скасувати</button>
+            </div>
+        </div>
+    </div>
+
     <!-- ===== TOAST ===== -->
     <div class="toast" id="toast"></div>
 
     <!-- ================================================================
-    JAVASCRIPT - ПОВНІСТЮ ПЕРЕПИСАНИЙ З ВИПРАВЛЕННЯМ CORS
+    JAVASCRIPT - ПОВНА ВЕРСІЯ З СИСТЕМОЮ АКАУНТІВ
     ================================================================ -->
     <script>
         // ================================================================
-        // 1. КОНФІГУРАЦІЯ З CORS-ПРОКСІ
+        // 1. КОНФІГУРАЦІЯ
         // ================================================================
         const CONFIG = {
-            // Безкоштовні CORS-проксі сервери
-            CORS_PROXIES: [
-                'https://api.allorigins.win/raw?url=',
-                'https://corsproxy.io/?',
-                'https://cors-anywhere.herokuapp.com/'
-            ],
-            // Invidious інстанси (безкоштовні проксі YouTube)
-            INVIDIOUS_INSTANCES: [
+            // Використовуємо різні безкоштовні API
+            API_SOURCES: [
+                // Invidious інстанси (без проксі)
                 'https://invidious.snopyta.org',
                 'https://invidious.kavin.rocks',
                 'https://vid.puffyan.us',
                 'https://yewtu.be',
-                'https://invidious.jing.rocks'
+                // Альтернативні API
+                'https://invidious.jing.rocks',
+                'https://invidious.osi.kr'
             ],
             MAX_RESULTS: 25,
-            TIMEOUT: 15000
+            TIMEOUT: 10000
         };
 
         // ================================================================
-        // 2. СТАН ДОДАТКУ
+        // 2. СИСТЕМА АКАУНТІВ
+        // ================================================================
+        class AuthSystem {
+            constructor() {
+                this.currentUser = null;
+                this.users = JSON.parse(localStorage.getItem('fresfy_users') || '{}');
+                this.loadSession();
+            }
+
+            loadSession() {
+                const session = localStorage.getItem('fresfy_session');
+                if (session) {
+                    try {
+                        const data = JSON.parse(session);
+                        if (this.users[data.username] && this.users[data.username].password === data.password) {
+                            this.currentUser = data;
+                            return true;
+                        }
+                    } catch (e) {}
+                }
+                this.currentUser = null;
+                return false;
+            }
+
+            saveSession() {
+                if (this.currentUser) {
+                    localStorage.setItem('fresfy_session', JSON.stringify(this.currentUser));
+                } else {
+                    localStorage.removeItem('fresfy_session');
+                }
+            }
+
+            register(username, password) {
+                if (!username || username.length < 3) return { success: false, message: 'Ім\'я має бути не менше 3 символів' };
+                if (!password || password.length < 4) return { success: false, message: 'Пароль має бути не менше 4 символів' };
+                if (this.users[username]) return { success: false, message: 'Користувач вже існує' };
+
+                this.users[username] = {
+                    password: password,
+                    created: new Date().toISOString(),
+                    favorites: [],
+                    playlists: [],
+                    library: [],
+                    history: []
+                };
+
+                localStorage.setItem('fresfy_users', JSON.stringify(this.users));
+
+                this.currentUser = { username, password };
+                this.saveSession();
+
+                return { success: true, message: 'Реєстрація успішна!' };
+            }
+
+            login(username, password) {
+                if (!this.users[username]) return { success: false, message: 'Користувача не знайдено' };
+                if (this.users[username].password !== password) return { success: false, message: 'Невірний пароль' };
+
+                this.currentUser = { username, password };
+                this.saveSession();
+
+                // Завантажуємо дані користувача
+                this.loadUserData();
+
+                return { success: true, message: 'Вхід виконано!' };
+            }
+
+            logout() {
+                this.currentUser = null;
+                localStorage.removeItem('fresfy_session');
+                // Очищаємо дані користувача
+                State.favorites = [];
+                State.playlists = [];
+                State.library = [];
+                State.history = [];
+                Storage.saveFavorites();
+                Storage.savePlaylists();
+                Storage.saveLibrary();
+                Storage.saveHistory();
+                updateUI();
+                showToast('👋 Ви вийшли з акаунту');
+            }
+
+            loadUserData() {
+                if (!this.currentUser) return;
+                const userData = this.users[this.currentUser.username];
+                if (userData) {
+                    State.favorites = userData.favorites || [];
+                    State.playlists = userData.playlists || [];
+                    State.library = userData.library || [];
+                    State.history = userData.history || [];
+                    Storage.saveFavorites();
+                    Storage.savePlaylists();
+                    Storage.saveLibrary();
+                    Storage.saveHistory();
+                }
+            }
+
+            saveUserData() {
+                if (!this.currentUser) return;
+                const userData = this.users[this.currentUser.username];
+                if (userData) {
+                    userData.favorites = State.favorites;
+                    userData.playlists = State.playlists;
+                    userData.library = State.library;
+                    userData.history = State.history;
+                    localStorage.setItem('fresfy_users', JSON.stringify(this.users));
+                }
+            }
+
+            isLoggedIn() {
+                return this.currentUser !== null;
+            }
+
+            getUsername() {
+                return this.currentUser ? this.currentUser.username : null;
+            }
+        }
+
+        const Auth = new AuthSystem();
+
+        // ================================================================
+        // 3. СТАН ДОДАТКУ
         // ================================================================
         const State = {
             audio: new Audio(),
@@ -1091,24 +1264,28 @@
             isPlaying: false,
             isRepeating: false,
 
-            favorites: JSON.parse(localStorage.getItem('fresfy_favorites') || '[]'),
-            playlists: JSON.parse(localStorage.getItem('fresfy_playlists') || '[]'),
-            library: JSON.parse(localStorage.getItem('fresfy_library') || '[]'),
-            history: JSON.parse(localStorage.getItem('fresfy_history') || '[]'),
+            favorites: [],
+            playlists: [],
+            library: [],
+            history: [],
 
             currentPage: 'home',
             isOffline: !navigator.onLine,
             theme: localStorage.getItem('fresfy_theme') || 'dark',
-            instanceIndex: 0,
-            proxyIndex: 0
+            apiIndex: 0,
+            tracks: []
         };
 
         // ================================================================
-        // 3. ЗБЕРІГАННЯ
+        // 4. ЗБЕРІГАННЯ (ОНОВЛЕНО)
         // ================================================================
         const Storage = {
             save(key, data) {
                 localStorage.setItem(`fresfy_${key}`, JSON.stringify(data));
+                // Якщо користувач залогінений, зберігаємо в його дані
+                if (Auth.isLoggedIn()) {
+                    Auth.saveUserData();
+                }
             },
             get(key) {
                 const data = localStorage.getItem(`fresfy_${key}`);
@@ -1120,83 +1297,34 @@
                 updateBadges(); },
             saveLibrary() { this.save('library', State.library);
                 updateBadges(); },
-            saveHistory() { this.save('history', State.history); },
-            saveTheme() { localStorage.setItem('fresfy_theme', State.theme); }
+            saveHistory() { this.save('history', State.history); }
         };
 
         // ================================================================
-        // 4. ДОПОМІЖНІ ФУНКЦІЇ
-        // ================================================================
-        function generateId() {
-            return Date.now().toString(36) + Math.random().toString(36).substr(2, 6);
-        }
-
-        function formatTime(seconds) {
-            if (!seconds || isNaN(seconds)) return '0:00';
-            const mins = Math.floor(seconds / 60);
-            const secs = Math.floor(seconds % 60);
-            return `${mins}:${secs.toString().padStart(2, '0')}`;
-        }
-
-        function showToast(message, duration = 2500) {
-            const toast = document.getElementById('toast');
-            toast.textContent = message;
-            toast.classList.add('show');
-            clearTimeout(toast._timeout);
-            toast._timeout = setTimeout(() => toast.classList.remove('show'), duration);
-        }
-
-        function getThumbnail(track) {
-            if (track.thumbnail && typeof track.thumbnail === 'string' && track.thumbnail.startsWith('http')) {
-                return track.thumbnail;
-            }
-            return `https://via.placeholder.com/120x120/1DB954/FFFFFF?text=${(track.title?.[0] || '?').toUpperCase()}`;
-        }
-
-        function getTrackId(track) {
-            return track.videoId || track.id;
-        }
-
-        function updateBadges() {
-            document.getElementById('libraryBadge').textContent = State.library.length;
-            document.getElementById('playlistBadge').textContent = State.playlists.length;
-            document.getElementById('favoritesBadge').textContent = State.favorites.length;
-        }
-
-        // ================================================================
-        // 5. API КЛІЄНТ З ВИПРАВЛЕННЯМ CORS
+        // 5. API КЛІЄНТ (БЕЗ ПРОКСІ)
         // ================================================================
         class YouTubeAPI {
             constructor() {
-                this.instanceIndex = 0;
-                this.proxyIndex = 0;
-                this.instances = CONFIG.INVIDIOUS_INSTANCES;
-                this.proxies = CONFIG.CORS_PROXIES;
+                this.apiIndex = 0;
+                this.sources = CONFIG.API_SOURCES;
                 this.timeout = CONFIG.TIMEOUT;
             }
 
-            switchInstance() {
-                this.instanceIndex = (this.instanceIndex + 1) % this.instances.length;
-                console.log('🔄 Переключено на інстанс:', this.instances[this.instanceIndex]);
+            switchSource() {
+                this.apiIndex = (this.apiIndex + 1) % this.sources.length;
+                console.log('🔄 Переключено на API:', this.sources[this.apiIndex]);
             }
 
-            switchProxy() {
-                this.proxyIndex = (this.proxyIndex + 1) % this.proxies.length;
-                console.log('🔄 Переключено на проксі:', this.proxies[this.proxyIndex]);
-            }
-
-            async fetchWithTimeout(url, options = {}) {
+            async fetchWithTimeout(url) {
                 const controller = new AbortController();
                 const timeout = setTimeout(() => controller.abort(), this.timeout);
 
                 try {
                     const response = await fetch(url, {
-                        ...options,
                         signal: controller.signal,
                         headers: {
                             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-                            'Accept': 'application/json',
-                            ...options.headers
+                            'Accept': 'application/json'
                         }
                     });
                     clearTimeout(timeout);
@@ -1211,43 +1339,27 @@
                 }
             }
 
-            async fetchJson(url, useProxy = true) {
-                const maxRetries = 8;
+            async fetchJson(url) {
+                const maxRetries = this.sources.length * 2;
                 let lastError = null;
 
                 for (let attempt = 0; attempt < maxRetries; attempt++) {
                     try {
-                        let finalUrl = url;
+                        const source = this.sources[this.apiIndex];
+                        const fullUrl = url.startsWith('http') ? url : `${source}${url}`;
 
-                        // Додаємо проксі з ротацією
-                        if (useProxy && this.proxies[this.proxyIndex]) {
-                            finalUrl = this.proxies[this.proxyIndex] + encodeURIComponent(url);
-                        }
+                        console.log(`📡 Спроба ${attempt + 1}:`, fullUrl);
 
-                        console.log(`📡 Спроба ${attempt + 1}:`, finalUrl);
-
-                        const data = await this.fetchWithTimeout(finalUrl);
+                        const data = await this.fetchWithTimeout(fullUrl);
                         return data;
 
                     } catch (error) {
                         console.warn(`⚠️ Спроба ${attempt + 1} невдала:`, error.message);
                         lastError = error;
-
-                        // Ротація проксі
-                        this.switchProxy();
-
-                        // Якщо проксі не працюють, пробуємо без проксі
-                        if (attempt > 3) {
-                            useProxy = false;
-                        }
-
-                        // Якщо всі проксі спробувані, міняємо інстанс
-                        if (attempt > 5) {
-                            this.switchInstance();
-                        }
+                        this.switchSource();
 
                         // Затримка перед наступною спробою
-                        await new Promise(resolve => setTimeout(resolve, 1000 * (attempt + 1)));
+                        await new Promise(resolve => setTimeout(resolve, 500 * (attempt + 1)));
                     }
                 }
 
@@ -1257,10 +1369,9 @@
             async search(query, limit = CONFIG.MAX_RESULTS) {
                 if (!query || query.trim().length < 2) return [];
 
-                const baseUrl = this.instances[this.instanceIndex];
                 try {
                     const url =
-                        `${baseUrl}/api/v1/search?q=${encodeURIComponent(query)}&type=video&fields=videoId,title,author,lengthSeconds,viewCount,thumbnail,description&limit=${limit}`;
+                        `/api/v1/search?q=${encodeURIComponent(query)}&type=video&fields=videoId,title,author,lengthSeconds,viewCount,thumbnail,description&limit=${limit}`;
                     const data = await this.fetchJson(url);
 
                     if (data && data.length > 0) {
@@ -1268,16 +1379,13 @@
                     }
                 } catch (error) {
                     console.warn('⚠️ Помилка пошуку:', error);
-                    this.switchInstance();
-                    return this.search(query, limit);
                 }
                 return [];
             }
 
             async getPopular(limit = 20) {
-                const baseUrl = this.instances[this.instanceIndex];
                 try {
-                    const url = `${baseUrl}/api/v1/popular?limit=${limit}`;
+                    const url = `/api/v1/popular?limit=${limit}`;
                     const data = await this.fetchJson(url);
 
                     if (data && data.length > 0) {
@@ -1285,16 +1393,13 @@
                     }
                 } catch (error) {
                     console.warn('⚠️ Помилка популярних:', error);
-                    this.switchInstance();
-                    return this.getPopular(limit);
                 }
                 return this.getDemoTracks();
             }
 
             async getAudioStream(videoId) {
-                const baseUrl = this.instances[this.instanceIndex];
                 try {
-                    const url = `${baseUrl}/api/v1/videos/${videoId}`;
+                    const url = `/api/v1/videos/${videoId}`;
                     const data = await this.fetchJson(url);
 
                     if (data && data.formatStreams) {
@@ -1335,12 +1440,6 @@
                         url: '#', is_offline: false },
                     { id: 'demo3', title: 'Demo Track 3 - Study Music', artist: 'YouTube Music', duration: 195,
                         thumbnail: 'https://via.placeholder.com/120x120/1DB954/FFFFFF?text=3', videoId: 'demo3',
-                        url: '#', is_offline: false },
-                    { id: 'demo4', title: 'Demo Track 4 - Electronic Mix', artist: 'YouTube Music', duration: 225,
-                        thumbnail: 'https://via.placeholder.com/120x120/1DB954/FFFFFF?text=4', videoId: 'demo4',
-                        url: '#', is_offline: false },
-                    { id: 'demo5', title: 'Demo Track 5 - Acoustic Guitar', artist: 'YouTube Music', duration: 165,
-                        thumbnail: 'https://via.placeholder.com/120x120/1DB954/FFFFFF?text=5', videoId: 'demo5',
                         url: '#', is_offline: false }
                 ];
             }
@@ -1349,7 +1448,46 @@
         const API = new YouTubeAPI();
 
         // ================================================================
-        // 6. ОСНОВНІ ФУНКЦІЇ
+        // 6. ДОПОМІЖНІ ФУНКЦІЇ
+        // ================================================================
+        function generateId() {
+            return Date.now().toString(36) + Math.random().toString(36).substr(2, 6);
+        }
+
+        function formatTime(seconds) {
+            if (!seconds || isNaN(seconds)) return '0:00';
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        function showToast(message, duration = 2500) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            clearTimeout(toast._timeout);
+            toast._timeout = setTimeout(() => toast.classList.remove('show'), duration);
+        }
+
+        function getThumbnail(track) {
+            if (track.thumbnail && typeof track.thumbnail === 'string' && track.thumbnail.startsWith('http')) {
+                return track.thumbnail;
+            }
+            return `https://via.placeholder.com/120x120/1DB954/FFFFFF?text=${(track.title?.[0] || '?').toUpperCase()}`;
+        }
+
+        function getTrackId(track) {
+            return track.videoId || track.id;
+        }
+
+        function updateBadges() {
+            document.getElementById('libraryBadge').textContent = State.library.length;
+            document.getElementById('playlistBadge').textContent = State.playlists.length;
+            document.getElementById('favoritesBadge').textContent = State.favorites.length;
+        }
+
+        // ================================================================
+        // 7. ОСНОВНІ ФУНКЦІЇ
         // ================================================================
 
         async function searchTracks(query) {
@@ -1378,6 +1516,7 @@
                 `<div class="loading-container"><div class="loading-spinner"></div><span>Завантаження...</span></div>`;
             try {
                 const tracks = await API.getPopular(20);
+                State.tracks = tracks;
                 renderTrackList('popularTracks', tracks, 'Популярні');
             } catch (error) {
                 console.error('Помилка:', error);
@@ -1565,7 +1704,7 @@
         }
 
         // ================================================================
-        // 7. UI РЕНДЕРИНГ
+        // 8. UI РЕНДЕРИНГ
         // ================================================================
 
         function renderTrackList(containerId, tracks, title = '') {
@@ -1746,8 +1885,33 @@
             });
         }
 
+        function updateUI() {
+            const isLoggedIn = Auth.isLoggedIn();
+            const authBtn = document.getElementById('authBtn');
+            const userInfo = document.getElementById('userInfo');
+            const userName = document.getElementById('userName');
+            const userAvatar = document.getElementById('userAvatar');
+
+            if (isLoggedIn) {
+                const username = Auth.getUsername();
+                authBtn.textContent = '🚪 Вийти';
+                authBtn.className = 'auth-btn logout';
+                userInfo.style.display = 'flex';
+                userName.textContent = username;
+                userAvatar.textContent = username[0].toUpperCase();
+                document.getElementById('greetingText').textContent = `Добрий вечір, ${username} 👋`;
+            } else {
+                authBtn.textContent = '🔑 Увійти';
+                authBtn.className = 'auth-btn';
+                userInfo.style.display = 'none';
+                document.getElementById('greetingText').textContent = 'Добрий вечір 👋';
+            }
+
+            updateBadges();
+        }
+
         // ================================================================
-        // 8. НАВІГАЦІЯ
+        // 9. НАВІГАЦІЯ
         // ================================================================
         function navigateTo(page) {
             State.currentPage = page;
@@ -1780,7 +1944,7 @@
         }
 
         // ================================================================
-        // 9. ПОДІЇ ПЛЕЄРА
+        // 10. ПОДІЇ ПЛЕЄРА
         // ================================================================
         function setupPlayerEvents() {
             const audio = State.audio;
@@ -1852,7 +2016,82 @@
         }
 
         // ================================================================
-        // 10. НАЛАШТУВАННЯ
+        // 11. СИСТЕМА АВТОРИЗАЦІЇ UI
+        // ================================================================
+        function setupAuth() {
+            const authBtn = document.getElementById('authBtn');
+            const loginModal = document.getElementById('loginModal');
+            const closeLoginBtn = document.getElementById('closeLoginBtn');
+            const loginBtn = document.getElementById('loginBtn');
+            const registerBtn = document.getElementById('registerBtn');
+            const usernameInput = document.getElementById('loginUsername');
+            const passwordInput = document.getElementById('loginPassword');
+
+            const openLogin = () => {
+                loginModal.classList.add('show');
+                usernameInput.value = '';
+                passwordInput.value = '';
+                usernameInput.focus();
+            };
+
+            const closeLogin = () => {
+                loginModal.classList.remove('show');
+            };
+
+            authBtn.addEventListener('click', () => {
+                if (Auth.isLoggedIn()) {
+                    Auth.logout();
+                    updateUI();
+                    renderLibrary();
+                    renderFavorites();
+                    renderPlaylists();
+                    renderHistory();
+                } else {
+                    openLogin();
+                }
+            });
+
+            closeLoginBtn.addEventListener('click', closeLogin);
+            loginModal.addEventListener('click', (e) => { if (e.target === loginModal) closeLogin(); });
+
+            loginBtn.addEventListener('click', () => {
+                const username = usernameInput.value.trim();
+                const password = passwordInput.value.trim();
+                const result = Auth.login(username, password);
+                showToast(result.message);
+                if (result.success) {
+                    closeLogin();
+                    updateUI();
+                    renderLibrary();
+                    renderFavorites();
+                    renderPlaylists();
+                    renderHistory();
+                }
+            });
+
+            registerBtn.addEventListener('click', () => {
+                const username = usernameInput.value.trim();
+                const password = passwordInput.value.trim();
+                const result = Auth.register(username, password);
+                showToast(result.message);
+                if (result.success) {
+                    updateUI();
+                    renderLibrary();
+                    renderFavorites();
+                    renderPlaylists();
+                    renderHistory();
+                }
+            });
+
+            usernameInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') passwordInput.focus(); });
+            passwordInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') loginBtn.click(); });
+
+            // Оновлюємо UI при завантаженні
+            updateUI();
+        }
+
+        // ================================================================
+        // 12. НАЛАШТУВАННЯ
         // ================================================================
         function setupTheme() {
             const btn = document.getElementById('themeToggle');
@@ -1935,17 +2174,18 @@
         }
 
         // ================================================================
-        // 11. ІНІЦІАЛІЗАЦІЯ
+        // 13. ІНІЦІАЛІЗАЦІЯ
         // ================================================================
         function init() {
             console.log('🎵 Fresfy - Spotify Style Music App');
-            console.log('📡 Використовується Invidious API з CORS проксі');
+            console.log('📡 Використовується Invidious API');
 
             setupTheme();
             setupOnlineStatus();
             setupPlayerEvents();
             setupSearch();
             setupOtherEvents();
+            setupAuth();
 
             document.querySelectorAll('.nav-item').forEach(item => {
                 item.addEventListener('click', (e) => {
@@ -1970,12 +2210,13 @@
         }
 
         // ================================================================
-        // 12. ЗАПУСК
+        // 14. ЗАПУСК
         // ================================================================
         document.addEventListener('DOMContentLoaded', init);
 
         window.__app = {
             State,
+            Auth,
             playTrack,
             togglePlay,
             nextTrack,
