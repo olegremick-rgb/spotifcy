@@ -378,6 +378,16 @@
             object-fit: cover;
             flex-shrink: 0;
             background: var(--fresfy-dark-hover);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+        }
+        .track-thumb img {
+            width: 100%;
+            height: 100%;
+            border-radius: var(--fresfy-radius);
+            object-fit: cover;
         }
         .track-info { flex: 1; min-width: 0; }
         .track-name {
@@ -613,6 +623,16 @@
             object-fit: cover;
             flex-shrink: 0;
             background: var(--fresfy-dark-hover);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+        }
+        .player-thumb img {
+            width: 100%;
+            height: 100%;
+            border-radius: var(--fresfy-radius);
+            object-fit: cover;
         }
         .player-track-info { display: flex; flex-direction: column; min-width: 0; }
         .player-track-info .track-name {
@@ -866,7 +886,7 @@
                 gap: 6px;
             }
             .player-info { min-width: 100px; flex: 1; }
-            .player-thumb { width: 40px; height: 40px; }
+            .player-thumb { width: 40px; height: 40px; font-size: 24px; }
             .player-center { order: 10; width: 100%; max-width: 100%; }
             .player-right { min-width: auto; flex: 1; }
             .player-volume { display: none; }
@@ -877,7 +897,7 @@
             .page-header h2 { font-size: 24px; }
             .playlists-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; }
             .track-item { padding: 8px 10px; gap: 10px; }
-            .track-thumb { width: 40px; height: 40px; }
+            .track-thumb { width: 40px; height: 40px; font-size: 20px; }
             .track-actions { opacity: 1; }
             .track-duration { display: none; }
             .import-section textarea { min-height: 80px; font-size: 12px; }
@@ -1068,7 +1088,7 @@
     <!-- ===== МІНІ-ПЛЕЄР ===== -->
     <div id="miniPlayer">
         <div class="player-info" id="playerInfo">
-            <img class="player-thumb" id="playerThumb" src="" alt="">
+            <div class="player-thumb" id="playerThumb">🎵</div>
             <div class="player-track-info">
                 <span class="track-name" id="playerTrackName">Немає треку</span>
                 <span class="track-artist" id="playerArtistName">-</span>
@@ -1142,8 +1162,8 @@
         let isYoutubeReady = false;
         let youtubeQueue = [];
         let updateProgressInterval = null;
-        let isVolumeChanging = false;
 
+        // Завантажуємо YouTube API
         const tag = document.createElement('script');
         tag.src = 'https://www.youtube.com/iframe_api';
         const firstScriptTag = document.getElementsByTagName('script')[0];
@@ -1162,7 +1182,8 @@
                     'modestbranding': 1,
                     'playsinline': 1,
                     'rel': 0,
-                    'showinfo': 0
+                    'showinfo': 0,
+                    'origin': window.location.origin
                 },
                 events: {
                     'onReady': onPlayerReady,
@@ -1219,7 +1240,17 @@
 
         function onPlayerError(event) {
             console.error('YouTube помилка:', event.data);
-            showToast('❌ Помилка відтворення');
+            // Помилка 150 = відео не доступне для вбудовування
+            if (event.data === 150 || event.data === 101) {
+                showToast('❌ Це відео не можна вбудувати. Відкриваємо в YouTube...');
+                if (State.currentTrack && State.currentTrack.url) {
+                    window.open(State.currentTrack.url, '_blank');
+                }
+                // Переходимо до наступного треку
+                setTimeout(() => nextTrack(), 2000);
+            } else {
+                showToast('❌ Помилка відтворення');
+            }
         }
 
         // ================================================================
@@ -1407,10 +1438,7 @@
         }
 
         function getThumbnail(videoId) {
-            if (videoId) {
-                return `https://i.ytimg.com/vi/${videoId}/default.jpg`;
-            }
-            return `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'%3E%3Crect fill='%231DB954' width='120' height='120'/%3E%3Ctext x='50%25' y='50%25' font-size='48' text-anchor='middle' dy='.35em' fill='white'%3E🎵%3C/text%3E%3C/svg%3E`;
+            return `https://i.ytimg.com/vi/${videoId}/default.jpg`;
         }
 
         function getTrackId(track) {
@@ -1427,7 +1455,8 @@
             const patterns = [
                 /(?:youtube\.com\/watch\?v=)([^&]+)/,
                 /(?:youtu\.be\/)([^?]+)/,
-                /(?:youtube\.com\/embed\/)([^?]+)/
+                /(?:youtube\.com\/embed\/)([^?]+)/,
+                /(?:music\.youtube\.com\/watch\?v=)([^&]+)/
             ];
             for (const pattern of patterns) {
                 const match = url.match(pattern);
@@ -1577,14 +1606,37 @@
 
         function nextTrack() {
             if (!State.currentQueue.length) return;
-            State.currentIndex = (State.currentIndex + 1) % State.currentQueue.length;
-            playTrack(State.currentQueue[State.currentIndex], State.currentQueue);
+            // Шукаємо наступний доступний трек
+            let attempts = 0;
+            let nextIndex = (State.currentIndex + 1) % State.currentQueue.length;
+            while (attempts < State.currentQueue.length) {
+                const track = State.currentQueue[nextIndex];
+                if (track && track.videoId && track.videoId !== 'dQw4w9WgXcQ') {
+                    State.currentIndex = nextIndex;
+                    playTrack(State.currentQueue[State.currentIndex], State.currentQueue);
+                    return;
+                }
+                nextIndex = (nextIndex + 1) % State.currentQueue.length;
+                attempts++;
+            }
+            showToast('❌ Немає доступних треків');
         }
 
         function prevTrack() {
             if (!State.currentQueue.length) return;
-            State.currentIndex = (State.currentIndex - 1 + State.currentQueue.length) % State.currentQueue.length;
-            playTrack(State.currentQueue[State.currentIndex], State.currentQueue);
+            let attempts = 0;
+            let prevIndex = (State.currentIndex - 1 + State.currentQueue.length) % State.currentQueue.length;
+            while (attempts < State.currentQueue.length) {
+                const track = State.currentQueue[prevIndex];
+                if (track && track.videoId && track.videoId !== 'dQw4w9WgXcQ') {
+                    State.currentIndex = prevIndex;
+                    playTrack(State.currentQueue[State.currentIndex], State.currentQueue);
+                    return;
+                }
+                prevIndex = (prevIndex - 1 + State.currentQueue.length) % State.currentQueue.length;
+                attempts++;
+            }
+            showToast('❌ Немає доступних треків');
         }
 
         function addToHistory(track) {
@@ -1773,7 +1825,9 @@
                 const thumb = getThumbnail(track.videoId);
 
                 item.innerHTML = `
-                    <img class="track-thumb" src="${thumb}" alt="" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22120%22 height=%22120%22 viewBox=%220 0 120 120%22%3E%3Crect fill=%22%231DB954%22 width=%22120%22 height=%22120%22/%3E%3Ctext x=%2250%%22 y=%2250%%22 font-size=%2248%22 text-anchor=%22middle%22 dy=%22.35em%22 fill=%22white%22%3E🎵%3C/text%3E%3C/svg%3E'">
+                    <div class="track-thumb">
+                        <img src="${thumb}" alt="" loading="lazy" onerror="this.style.display='none';this.parentElement.textContent='🎵'">
+                    </div>
                     <div class="track-info">
                         <div class="track-name">${track.title || 'Без назви'}</div>
                         <div class="track-artist">${track.artist || 'Невідомий'}</div>
@@ -1830,7 +1884,6 @@
                 showToast('Спочатку створіть плейлист');
                 return;
             }
-            // Просте вікно вибору
             let options = '';
             State.playlists.forEach(p => {
                 options +=
@@ -1839,7 +1892,6 @@
                     </button>`;
             });
 
-            // Створюємо тимчасове модальне вікно
             const overlay = document.createElement('div');
             overlay.className = 'modal-overlay show';
             overlay.style.display = 'flex';
@@ -1892,12 +1944,15 @@
                 document.getElementById('playerTrackName').textContent = State.currentTrack.title || 'Без назви';
                 document.getElementById('playerArtistName').textContent = State.currentTrack.artist || 'Невідомий';
                 const thumb = document.getElementById('playerThumb');
-                thumb.src = getThumbnail(State.currentTrack.videoId);
-                thumb.style.display = 'block';
-                thumb.onerror = function() {
-                    this.src =
-                        "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'%3E%3Crect fill='%231DB954' width='120' height='120'/%3E%3Ctext x='50%25' y='50%25' font-size='48' text-anchor='middle' dy='.35em' fill='white'%3E🎵%3C/text%3E%3C/svg%3E";
+                const img = document.createElement('img');
+                img.src = getThumbnail(State.currentTrack.videoId);
+                img.alt = '';
+                img.onerror = function() {
+                    this.style.display = 'none';
+                    thumb.textContent = '🎵';
                 };
+                thumb.innerHTML = '';
+                thumb.appendChild(img);
             }
 
             document.querySelectorAll('.track-item').forEach(el => {
@@ -1985,7 +2040,6 @@
                 }
             });
 
-            // Гучність
             const volumeControl = document.getElementById('volumeControl');
             volumeControl.addEventListener('input', (e) => {
                 const val = parseFloat(e.target.value);
@@ -1994,7 +2048,6 @@
                 }
             });
 
-            // Прогрес
             const progressControl = document.getElementById('progressControl');
             progressControl.addEventListener('input', (e) => {
                 if (youtubePlayer && youtubePlayer.getDuration) {
@@ -2195,7 +2248,6 @@
                 showToast('🗑️ Очищено');
             });
 
-            // Ctrl+Enter для імпорту
             textarea.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter' && e.ctrlKey) {
                     saveBtn.click();
