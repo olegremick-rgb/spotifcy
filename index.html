@@ -21,7 +21,1191 @@
             --fresfy-white: #ffffff;
             --fresfy-shadow: 0 8px 32px rgba(0,0,0,0.6);
             --fresfy-radius: 8px;
-            --fresfy-radius-lg: 12px;
+            --fresfy-radius-lg: 12px;<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>🎵 Spotify</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #121212;
+            color: #fff;
+            min-height: 100vh;
+            overflow-x: hidden;
+            padding-bottom: 100px;
+        }
+        
+        /* ===== SIDEBAR ===== */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: -280px;
+            width: 280px;
+            height: 100%;
+            background: #000;
+            z-index: 9999;
+            transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            padding: 20px 16px;
+            overflow-y: auto;
+        }
+        .sidebar.open { left: 0; }
+        
+        .sidebar .close-btn {
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 28px;
+            cursor: pointer;
+            margin-bottom: 20px;
+            width: 100%;
+            text-align: right;
+        }
+        .sidebar .logo { font-size: 24px; font-weight: 700; color: #1db954; margin-bottom: 30px; }
+        .sidebar .menu-item {
+            padding: 12px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.2s;
+            color: #b3b3b3;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            font-size: 15px;
+            margin-bottom: 4px;
+        }
+        .sidebar .menu-item:hover { background: #282828; color: #fff; }
+        .sidebar .menu-item.active { background: #282828; color: #fff; }
+        .sidebar .menu-item .icon { font-size: 20px; width: 28px; }
+        .sidebar .divider { height: 1px; background: #282828; margin: 16px 0; }
+        .sidebar .playlist-item {
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            color: #b3b3b3;
+            font-size: 14px;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .sidebar .playlist-item:hover { color: #fff; }
+        
+        .sidebar-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.6);
+            z-index: 9998;
+            display: none;
+        }
+        .sidebar-overlay.show { display: block; }
+        
+        /* ===== AUTH ===== */
+        .auth-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: #121212;
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .auth-box {
+            background: #1e1e1e;
+            padding: 40px 30px;
+            border-radius: 24px;
+            max-width: 400px;
+            width: 100%;
+            border: 1px solid #2a2a2a;
+        }
+        .auth-box h2 {
+            font-size: 28px;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, #1db954, #1ed760);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .auth-box .sub { color: #888; margin-bottom: 24px; font-size: 14px; }
+        .auth-box input {
+            width: 100%;
+            padding: 12px 16px;
+            border-radius: 12px;
+            border: 1px solid #333;
+            background: #282828;
+            color: #fff;
+            margin-bottom: 12px;
+            font-size: 15px;
+        }
+        .auth-box input:focus { outline: none; border-color: #1db954; }
+        .auth-box .btn-primary {
+            width: 100%;
+            padding: 14px;
+            border-radius: 30px;
+            border: none;
+            background: #1db954;
+            color: #000;
+            font-weight: 600;
+            font-size: 16px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .auth-box .btn-primary:active { transform: scale(0.97); }
+        .auth-box .switch {
+            text-align: center;
+            margin-top: 16px;
+            color: #888;
+            font-size: 14px;
+        }
+        .auth-box .switch span { color: #1db954; cursor: pointer; font-weight: 500; }
+        .auth-box .error { color: #ff6b6b; font-size: 13px; margin-bottom: 12px; text-align: center; }
+        
+        /* ===== MAIN ===== */
+        .app { display: none; }
+        .app.active { display: block; }
+        
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 16px;
+        }
+        
+        /* ===== HEADER ===== */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-top: 8px;
+        }
+        .header .left { display: flex; align-items: center; gap: 12px; }
+        .header .menu-btn {
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 28px;
+            cursor: pointer;
+            padding: 4px;
+        }
+        .header h1 { font-size: 22px; font-weight: 700; }
+        .header .user-info { display: flex; align-items: center; gap: 10px; }
+        .header .user-info .avatar {
+            width: 36px; height: 36px;
+            border-radius: 50%;
+            background: #1db954;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            color: #000;
+            cursor: pointer;
+        }
+        
+        /* ===== HOME ===== */
+        .section-label {
+            font-size: 16px;
+            font-weight: 700;
+            margin: 20px 0 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .section-label .more { font-size: 13px; color: #aaa; cursor: pointer; font-weight: 400; }
+        .section-label .more:hover { color: #fff; }
+        
+        .artist-card {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: #1e1e1e;
+            border-radius: 12px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .artist-card:active { background: #282828; }
+        
+        .artist-card .thumb {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #1db954, #1ed760);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: 700;
+            color: #000;
+            flex-shrink: 0;
+        }
+        .artist-card .thumb.album { border-radius: 8px; }
+        
+        .artist-card .info { flex: 1; min-width: 0; }
+        .artist-card .info .name { font-weight: 500; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .artist-card .info .sub { font-size: 12px; color: #888; }
+        .artist-card .info .badge { font-size: 11px; color: #1db954; }
+        
+        /* ===== PODCAST CARDS ===== */
+        .podcast-grid {
+            display: flex;
+            gap: 12px;
+            overflow-x: auto;
+            padding: 4px 0 12px;
+            scroll-snap-type: x mandatory;
+            -webkit-overflow-scrolling: touch;
+        }
+        .podcast-grid::-webkit-scrollbar { display: none; }
+        
+        .podcast-card {
+            min-width: 140px;
+            background: #1e1e1e;
+            border-radius: 12px;
+            padding: 12px;
+            scroll-snap-align: start;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .podcast-card:active { background: #282828; }
+        .podcast-card .thumb {
+            width: 100%;
+            aspect-ratio: 1;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #2a2a2a, #1a1a1a);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+        .podcast-card .name { font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .podcast-card .sub { font-size: 11px; color: #888; }
+        
+        /* ===== TRACKS LIST ===== */
+        .track-item {
+            display: flex;
+            align-items: center;
+            padding: 10px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.2s;
+            gap: 12px;
+            border-bottom: 1px solid #1a1a1a;
+        }
+        .track-item:active { background: #282828; }
+        .track-item.playing { background: #1e2a1e; }
+        
+        .track-number { font-size: 14px; color: #666; width: 30px; text-align: center; flex-shrink: 0; }
+        .track-info { flex: 1; min-width: 0; }
+        .track-info .name { font-size: 15px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .track-info .details { font-size: 12px; color: #888; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .track-stats { font-size: 12px; color: #666; text-align: right; flex-shrink: 0; }
+        .track-actions { display: flex; gap: 4px; flex-shrink: 0; margin-left: 8px; }
+        .track-btn {
+            background: none; border: none;
+            color: #666; font-size: 16px;
+            cursor: pointer; padding: 4px;
+            transition: 0.2s;
+        }
+        .track-btn:active { transform: scale(0.9); }
+        .track-btn.liked { color: #1db954; }
+        
+        /* ===== ARTIST PAGE ===== */
+        .artist-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .artist-avatar {
+            width: 80px; height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #1db954, #1ed760);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            font-weight: 700;
+            color: #000;
+            flex-shrink: 0;
+        }
+        .artist-info .name { font-size: 28px; font-weight: 700; margin-bottom: 4px; }
+        .artist-info .followers { font-size: 14px; color: #aaa; }
+        
+        /* ===== LYRICS ===== */
+        .lyrics-section {
+            background: #1e1e1e;
+            border-radius: 16px;
+            padding: 16px;
+            margin: 16px 0;
+            border: 1px solid #2a2a2a;
+            max-height: 250px;
+            overflow-y: auto;
+            display: none;
+        }
+        .lyrics-section.show { display: block; }
+        .lyrics-section .lyrics-title {
+            font-weight: 600; font-size: 13px; color: #aaa;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .lyrics-section .lyrics-content { font-size: 14px; line-height: 1.8; color: #ccc; white-space: pre-wrap; }
+        .lyrics-section .lyrics-content .highlight { color: #1db954; }
+        .lyrics-section .no-lyrics { color: #666; font-style: italic; text-align: center; padding: 20px; }
+        
+        /* ===== PLAYER ===== */
+        .player {
+            position: fixed;
+            bottom: 0;
+            left: 0; right: 0;
+            background: #1e1e1e;
+            padding: 12px 16px;
+            border-top: 1px solid #2a2a2a;
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+        }
+        .player-top {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+        .player-thumb {
+            width: 44px; height: 44px;
+            border-radius: 8px;
+            object-fit: cover;
+            background: #1a1a1a;
+            cursor: pointer;
+        }
+        .player-info { flex: 1; min-width: 0; cursor: pointer; }
+        .player-name { font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .player-artist { font-size: 12px; color: #aaa; }
+        
+        .player-controls {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            justify-content: center;
+        }
+        .player-btn {
+            background: none; border: none;
+            color: #fff; font-size: 22px;
+            cursor: pointer; padding: 4px;
+            transition: 0.2s;
+        }
+        .player-btn:active { transform: scale(0.9); }
+        .player-btn.play-btn {
+            background: #1db954;
+            color: #000;
+            width: 44px; height: 44px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 26px;
+        }
+        .player-progress {
+            width: 100%; height: 4px;
+            background: #3a3a3a;
+            border-radius: 4px;
+            position: relative;
+            cursor: pointer;
+            margin-top: 6px;
+        }
+        .player-progress-fill {
+            height: 100%;
+            background: #1db954;
+            border-radius: 4px;
+            width: 0%;
+            transition: width 0.1s;
+        }
+        .player-time {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            color: #888;
+            margin-top: 2px;
+        }
+        
+        /* ===== TOAST ===== */
+        .toast {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #282828;
+            color: #fff;
+            padding: 12px 24px;
+            border-radius: 12px;
+            z-index: 9999;
+            opacity: 0;
+            transition: 0.3s;
+            pointer-events: none;
+            border: 1px solid #3a3a3a;
+            max-width: 90%;
+            text-align: center;
+        }
+        .toast.show { opacity: 1; }
+        
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #666;
+        }
+        .empty-state .icon { font-size: 48px; margin-bottom: 12px; }
+        
+        @media (max-width: 480px) {
+            .container { padding: 12px; }
+            .auth-box { padding: 30px 20px; }
+            .sidebar { width: 260px; left: -260px; }
+            .artist-avatar { width: 60px; height: 60px; font-size: 28px; }
+            .artist-info .name { font-size: 22px; }
+            .podcast-card { min-width: 120px; }
+        }
+    </style>
+</head>
+<body>
+    <div id="toast" class="toast"></div>
+    
+    <!-- ===== SIDEBAR ===== -->
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+    <div class="sidebar" id="sidebar">
+        <button class="close-btn" onclick="closeSidebar()">✕</button>
+        <div class="logo">🎵 Spotify</div>
+        
+        <div class="menu-item active" onclick="showHome()">
+            <span class="icon">🏠</span> Головна
+        </div>
+        <div class="menu-item" onclick="showSearch()">
+            <span class="icon">🔍</span> Пошук
+        </div>
+        <div class="menu-item" onclick="showLibrary()">
+            <span class="icon">📚</span> Бібліотека
+        </div>
+        <div class="menu-item" onclick="showFavorites()">
+            <span class="icon">❤️</span> Улюблене
+        </div>
+        
+        <div class="divider"></div>
+        <div style="color:#888;font-size:12px;padding:0 16px 8px;">ПЛЕЙЛИСТИ</div>
+        <div id="sidebarPlaylists"></div>
+        
+        <div class="divider"></div>
+        <div class="menu-item" onclick="logout()">
+            <span class="icon">🚪</span> Вийти
+        </div>
+    </div>
+    
+    <!-- ===== AUTH ===== -->
+    <div class="auth-overlay" id="authOverlay">
+        <div class="auth-box" id="authBox">
+            <h2 id="authTitle">🎵 Spotify</h2>
+            <div class="sub" id="authSub">Увійдіть у свій акаунт</div>
+            <div id="authError" class="error"></div>
+            <input type="text" id="authUsername" placeholder="Ім'я користувача">
+            <input type="password" id="authPassword" placeholder="Пароль">
+            <button class="btn-primary" onclick="handleAuth()" id="authBtn">Увійти</button>
+            <div class="switch">
+                <span id="authSwitch" onclick="toggleAuthMode()">Створити акаунт</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- ===== MAIN APP ===== -->
+    <div class="app" id="app">
+        <div class="container">
+            <div class="header">
+                <div class="left">
+                    <button class="menu-btn" onclick="toggleSidebar()">☰</button>
+                    <h1 id="pageTitle">Музика</h1>
+                </div>
+                <div class="user-info">
+                    <span id="userNameDisplay" style="font-size:13px;color:#aaa;"></span>
+                    <div class="avatar" id="userAvatar" onclick="toggleSidebar()">U</div>
+                </div>
+            </div>
+            
+            <!-- ===== SEARCH ===== -->
+            <div id="searchSection" style="display:none;">
+                <div style="display:flex;gap:10px;background:#282828;border-radius:30px;padding:4px;border:1px solid #3a3a3a;margin-bottom:16px;">
+                    <input id="searchInput" placeholder="Пошук пісень, артистів..." style="flex:1;background:transparent;border:none;padding:12px 16px;color:#fff;font-size:15px;outline:none;" onkeydown="if(event.key==='Enter') searchTracks()">
+                    <button onclick="searchTracks()" style="background:#1db954;border:none;color:#000;padding:10px 20px;border-radius:30px;font-weight:600;cursor:pointer;">🔍</button>
+                </div>
+                <div id="searchResults"></div>
+            </div>
+            
+            <!-- ===== HOME ===== -->
+            <div id="homePage">
+                <!-- Подкасти -->
+                <div class="section-label">
+                    Подкасти
+                    <span class="more">Показати всі →</span>
+                </div>
+                <div class="podcast-grid" id="podcastGrid">
+                    <div class="podcast-card" onclick="playPodcast('Заставь меня плакать')">
+                        <div class="thumb">🎙️</div>
+                        <div class="name">Заставь меня плакать</div>
+                        <div class="sub">Новий репіз від Тёмный принц</div>
+                    </div>
+                    <div class="podcast-card" onclick="playPodcast('Догвилль')">
+                        <div class="thumb">🎵</div>
+                        <div class="name">Догвилль</div>
+                        <div class="sub">Сингл • Тёмный принц</div>
+                    </div>
+                    <div class="podcast-card" onclick="playPodcast('Новички дочітчиці')">
+                        <div class="thumb">🎤</div>
+                        <div class="name">Новички дочітчиці</div>
+                        <div class="sub">Wellboy, MONATIK, MAX</div>
+                    </div>
+                </div>
+                
+                <!-- Нещодавні -->
+                <div class="section-label">
+                    Нещодавні
+                    <span class="more">Показати всі →</span>
+                </div>
+                <div id="recentArtists">
+                    <div class="artist-card" onclick="showArtistPage('System Of A Down')">
+                        <div class="thumb">S</div>
+                        <div class="info">
+                            <div class="name">System Of A Down</div>
+                            <div class="sub">Виконавець • <span class="badge">2 songs added</span></div>
+                        </div>
+                    </div>
+                    <div class="artist-card" onclick="showArtistPage('Mezmerize')">
+                        <div class="thumb album">💿</div>
+                        <div class="info">
+                            <div class="name">Mezmerize</div>
+                            <div class="sub">Альбом • <span class="badge">2 songs added</span></div>
+                        </div>
+                    </div>
+                    <div class="artist-card" onclick="showArtistPage('Metallica')">
+                        <div class="thumb">M</div>
+                        <div class="info">
+                            <div class="name">Metallica</div>
+                            <div class="sub">Виконавець • <span class="badge">2 songs added</span></div>
+                        </div>
+                    </div>
+                    <div class="artist-card" onclick="showArtistPage('Muttter')">
+                        <div class="thumb">M</div>
+                        <div class="info">
+                            <div class="name">Muttter</div>
+                            <div class="sub">Альбом • <span class="badge">SUPER-PUPER</span></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- ТОП -->
+                <div class="section-label">
+                    <span>ТОП ПОН</span>
+                    <span class="more">2026 →</span>
+                </div>
+                <div id="topTracks">
+                    <div class="track-item" onclick="playTrackByName('CHOCOLATE STRAIGHT AND THE HOT DOG FLAVORED WATER')">
+                        <div class="track-number">1</div>
+                        <div class="track-info">
+                            <div class="name">CHOCOLATE STRAIGHT AND THE HOT DOG FLAVORED WATER</div>
+                            <div class="details">ПЕРЕЙТИ НА ВІДЕО</div>
+                        </div>
+                    </div>
+                    <div class="track-item" onclick="playTrackByName('Rollin\' (Air Raid Vehicle)')">
+                        <div class="track-number">2</div>
+                        <div class="track-info">
+                            <div class="name">Rollin' (Air Raid Vehicle)</div>
+                            <div class="details">Limp Bizkit • ПОВ'ЯЗАНІ МУЗИЧНІ ВІДЕО</div>
+                        </div>
+                    </div>
+                    <div class="track-item" onclick="playTrackByName('Ready To Go')">
+                        <div class="track-number">3</div>
+                        <div class="track-info">
+                            <div class="name">Ready To Go</div>
+                            <div class="details">ПОВ'ЯЗАНІ МУЗИЧНІ ВІДЕО</div>
+                        </div>
+                    </div>
+                    <div class="track-item" onclick="playTrackByName('Break Stuff')">
+                        <div class="track-number">4</div>
+                        <div class="track-info">
+                            <div class="name">Break Stuff</div>
+                            <div class="details">Limp Bizkit • ПРО ВИКОНАВЦЯ</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Виконавці -->
+                <div class="section-label">
+                    Виконавці
+                    <span class="more">Показати всі →</span>
+                </div>
+                <div id="artistsList">
+                    <div class="artist-card" onclick="showArtistPage('System Of A Down')">
+                        <div class="thumb">S</div>
+                        <div class="info">
+                            <div class="name">System Of A Down</div>
+                            <div class="sub"><span class="badge">2 songs added</span></div>
+                        </div>
+                    </div>
+                    <div class="artist-card" onclick="showArtistPage('Mezmerize')">
+                        <div class="thumb album">💿</div>
+                        <div class="info">
+                            <div class="name">Mezmerize</div>
+                            <div class="sub"><span class="badge">2 songs added</span></div>
+                        </div>
+                    </div>
+                    <div class="artist-card" onclick="showArtistPage('OG Buda')">
+                        <div class="thumb">O</div>
+                        <div class="info">
+                            <div class="name">OG Buda</div>
+                            <div class="sub">Виконавець</div>
+                        </div>
+                    </div>
+                    <div class="artist-card" onclick="showArtistPage('Metallica')">
+                        <div class="thumb">M</div>
+                        <div class="info">
+                            <div class="name">Metallica</div>
+                            <div class="sub">Виконавець</div>
+                        </div>
+                    </div>
+                    <div class="artist-card" onclick="showArtistPage('Disturbed')">
+                        <div class="thumb">D</div>
+                        <div class="info">
+                            <div class="name">Disturbed</div>
+                            <div class="sub">Виконавець</div>
+                        </div>
+                    </div>
+                    <div class="artist-card" onclick="showArtistPage('Limp Bizkit')">
+                        <div class="thumb">L</div>
+                        <div class="info">
+                            <div class="name">Limp Bizkit</div>
+                            <div class="sub">3:33</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- ===== ARTIST PAGE ===== -->
+            <div id="artistPage" style="display:none;">
+                <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+                    <button onclick="showHome()" style="background:none;border:none;color:#fff;font-size:24px;cursor:pointer;">←</button>
+                    <span style="font-size:18px;font-weight:600;" id="artistPageName">Виконавець</span>
+                </div>
+                <div class="artist-header">
+                    <div class="artist-avatar" id="artistPageAvatar">R</div>
+                    <div class="artist-info">
+                        <div class="name" id="artistPageTitle">Rammstein</div>
+                        <div class="followers" id="artistPageFollowers">8 453 212 слухачів</div>
+                    </div>
+                </div>
+                <div class="section-label">Популярні</div>
+                <div id="artistTracks"></div>
+            </div>
+            
+            <!-- ===== LYRICS ===== -->
+            <div class="lyrics-section" id="lyricsSection">
+                <div class="lyrics-title">
+                    <span>📝 Текст пісні</span>
+                    <button class="close-lyrics" onclick="closeLyrics()" style="background:none;border:none;color:#888;font-size:18px;cursor:pointer;">✕</button>
+                </div>
+                <div class="lyrics-content" id="lyricsContent">
+                    <div class="no-lyrics">Оберіть пісню, щоб побачити текст</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- ===== PLAYER ===== -->
+    <div class="player" id="player">
+        <div class="player-top">
+            <img class="player-thumb" id="playerThumb" src="" alt="" onclick="toggleLyrics()">
+            <div class="player-info" onclick="toggleLyrics()">
+                <div class="player-name" id="playerName">Не грає</div>
+                <div class="player-artist" id="playerArtist">—</div>
+            </div>
+            <button class="track-btn" id="playerLikeBtn" onclick="toggleFavorite()" style="font-size:20px;">🤍</button>
+        </div>
+        <div class="player-controls">
+            <button class="player-btn" onclick="prevTrack()">⏮</button>
+            <button class="player-btn play-btn" id="playBtn" onclick="togglePlay()">▶</button>
+            <button class="player-btn" onclick="nextTrack()">⏭</button>
+        </div>
+        <div class="player-progress" id="progressContainer">
+            <div class="player-progress-fill" id="progressFill"></div>
+        </div>
+        <div class="player-time">
+            <span id="currentTime">0:00</span>
+            <span id="totalTime">0:00</span>
+        </div>
+    </div>
+
+    <script>
+        // ==================== CONFIG ====================
+        const YOUTUBE_API_KEY = 'AIzaSyD2SKPRuwy7KicpHNI4yOKGKXlDXDP9KqE';
+        const YOUTUBE_API = 'https://www.googleapis.com/youtube/v3';
+        
+        // ==================== STATE ====================
+        let currentUser = null;
+        let currentTracks = [];
+        let currentIndex = -1;
+        let isPlaying = false;
+        let audio = new Audio();
+        let currentTrackId = null;
+        let isAuthMode = false;
+        let currentArtist = '';
+        let favorites = [];
+        
+        // ==================== AUTH ====================
+        function getUsers() {
+            try { return JSON.parse(localStorage.getItem('spotify_users') || '{}'); } 
+            catch { return {}; }
+        }
+        function saveUsers(users) { localStorage.setItem('spotify_users', JSON.stringify(users)); }
+        function getFavorites(username) {
+            try { return JSON.parse(localStorage.getItem(`favorites_${username}`) || '[]'); } 
+            catch { return []; }
+        }
+        function saveFavorites(username, fav) {
+            localStorage.setItem(`favorites_${username}`, JSON.stringify(fav));
+        }
+        function getPlaylists(username) {
+            try { return JSON.parse(localStorage.getItem(`playlists_${username}`) || '[]'); } 
+            catch { return []; }
+        }
+        function savePlaylists(username, pl) {
+            localStorage.setItem(`playlists_${username}`, JSON.stringify(pl));
+        }
+        
+        function toggleAuthMode() {
+            isAuthMode = !isAuthMode;
+            document.getElementById('authTitle').textContent = isAuthMode ? '🎵 Створення' : '🎵 Spotify';
+            document.getElementById('authSub').textContent = isAuthMode ? 'Створіть новий акаунт' : 'Увійдіть у свій акаунт';
+            document.getElementById('authBtn').textContent = isAuthMode ? 'Створити' : 'Увійти';
+            document.getElementById('authSwitch').textContent = isAuthMode ? 'Вже маєте акаунт? Увійдіть' : 'Створити акаунт';
+            document.getElementById('authError').textContent = '';
+        }
+        
+        function handleAuth() {
+            const username = document.getElementById('authUsername').value.trim();
+            const password = document.getElementById('authPassword').value.trim();
+            const errorEl = document.getElementById('authError');
+            
+            if (!username || !password) {
+                errorEl.textContent = 'Заповніть усі поля';
+                return;
+            }
+            
+            const users = getUsers();
+            
+            if (isAuthMode) {
+                if (users[username]) {
+                    errorEl.textContent = 'Користувач вже існує';
+                    return;
+                }
+                users[username] = { password, created: Date.now() };
+                saveUsers(users);
+                errorEl.textContent = '';
+                showToast('✅ Акаунт створено! Увійдіть');
+                toggleAuthMode();
+                document.getElementById('authPassword').value = '';
+            } else {
+                if (!users[username] || users[username].password !== password) {
+                    errorEl.textContent = 'Невірне ім\'я або пароль';
+                    return;
+                }
+                errorEl.textContent = '';
+                currentUser = username;
+                localStorage.setItem('spotify_session', username);
+                document.getElementById('authOverlay').style.display = 'none';
+                document.getElementById('app').classList.add('active');
+                document.getElementById('userNameDisplay').textContent = username;
+                document.getElementById('userAvatar').textContent = username[0].toUpperCase();
+                favorites = getFavorites(currentUser);
+                showToast(`👋 Вітаємо, ${username}!`);
+                showHome();
+            }
+        }
+        
+        function logout() {
+            currentUser = null;
+            localStorage.removeItem('spotify_session');
+            document.getElementById('app').classList.remove('active');
+            document.getElementById('authOverlay').style.display = 'flex';
+            showToast('👋 До побачення!');
+        }
+        
+        // ==================== SIDEBAR ====================
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('open');
+            document.getElementById('sidebarOverlay').classList.toggle('show');
+        }
+        function closeSidebar() {
+            document.getElementById('sidebar').classList.remove('open');
+            document.getElementById('sidebarOverlay').classList.remove('show');
+        }
+        
+        // ==================== TOAST ====================
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.classList.add('show');
+            clearTimeout(toast._timer);
+            toast._timer = setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+        
+        // ==================== NAVIGATION ====================
+        function showHome() {
+            document.getElementById('pageTitle').textContent = 'Музика';
+            document.getElementById('homePage').style.display = 'block';
+            document.getElementById('artistPage').style.display = 'none';
+            document.getElementById('searchSection').style.display = 'none';
+            document.getElementById('searchResults').style.display = 'none';
+            closeSidebar();
+        }
+        
+        function showSearch() {
+            document.getElementById('pageTitle').textContent = 'Пошук';
+            document.getElementById('homePage').style.display = 'none';
+            document.getElementById('artistPage').style.display = 'none';
+            document.getElementById('searchSection').style.display = 'block';
+            document.getElementById('searchResults').style.display = 'block';
+            document.getElementById('searchResults').innerHTML = `
+                <div class="empty-state">
+                    <div class="icon">🔍</div>
+                    <p>Шукайте музику<br><small style="color:#555;">Введіть назву та натисніть пошук</small></p>
+                </div>
+            `;
+            closeSidebar();
+        }
+        
+        function showLibrary() {
+            showToast('📚 Бібліотека');
+            closeSidebar();
+        }
+        
+        function showFavorites() {
+            const favs = getFavorites(currentUser);
+            if (favs.length === 0) {
+                showToast('❤️ Немає улюблених треків');
+            } else {
+                showToast(`❤️ ${favs.length} улюблених треків`);
+            }
+            closeSidebar();
+        }
+        
+        // ==================== ARTIST PAGE ====================
+        const artistData = {
+            'Rammstein': {
+                avatar: 'R',
+                followers: '8 453 212 слухачів',
+                tracks: [
+                    { name: 'Sonne', duration: '4:32', views: '843 973 437' },
+                    { name: 'Du hast', duration: '3:55', views: '841 388 673' },
+                    { name: 'Deutschland', duration: '5:22', views: '673 871 252' },
+                    { name: 'Engel', duration: '4:24', views: '435 618 275' },
+                    { name: 'Rein raus', duration: '3:09', views: '119 544 039' }
+                ]
+            },
+            'System Of A Down': {
+                avatar: 'S',
+                followers: '4 231 890 слухачів',
+                tracks: [
+                    { name: 'Chop Suey!', duration: '3:30', views: '1 234 567 890' },
+                    { name: 'Toxicity', duration: '3:38', views: '987 654 321' },
+                    { name: 'Aerials', duration: '3:55', views: '456 789 123' }
+                ]
+            },
+            'Metallica': {
+                avatar: 'M',
+                followers: '6 789 012 слухачів',
+                tracks: [
+                    { name: 'Enter Sandman', duration: '5:29', views: '567 890 123' },
+                    { name: 'Nothing Else Matters', duration: '6:28', views: '456 789 012' },
+                    { name: 'Master of Puppets', duration: '8:35', views: '345 678 901' }
+                ]
+            },
+            'Limp Bizkit': {
+                avatar: 'L',
+                followers: '2 345 678 слухачів',
+                tracks: [
+                    { name: 'Rollin\' (Air Raid Vehicle)', duration: '3:33', views: '234 567 890' },
+                    { name: 'Break Stuff', duration: '2:46', views: '123 456 789' },
+                    { name: 'Nookie', duration: '4:26', views: '98 765 432' }
+                ]
+            },
+            'Disturbed': {
+                avatar: 'D',
+                followers: '1 987 654 слухачів',
+                tracks: [
+                    { name: 'Down With The Sickness', duration: '4:38', views: '234 567 890' },
+                    { name: 'Stricken', duration: '4:05', views: '123 456 789' }
+                ]
+            },
+            'OG Buda': {
+                avatar: 'O',
+                followers: '876 543 слухачів',
+                tracks: [
+                    { name: 'OG Buda - Track 1', duration: '3:00', views: '45 678' },
+                    { name: 'OG Buda - Track 2', duration: '2:45', views: '34 567' }
+                ]
+            }
+        };
+        
+        function showArtistPage(artistName) {
+            const data = artistData[artistName] || artistData['Rammstein'];
+            currentArtist = artistName;
+            
+            document.getElementById('pageTitle').textContent = artistName;
+            document.getElementById('homePage').style.display = 'none';
+            document.getElementById('artistPage').style.display = 'block';
+            document.getElementById('searchSection').style.display = 'none';
+            document.getElementById('searchResults').style.display = 'none';
+            
+            document.getElementById('artistPageName').textContent = artistName;
+            document.getElementById('artistPageAvatar').textContent = data.avatar || artistName[0];
+            document.getElementById('artistPageTitle').textContent = artistName;
+            document.getElementById('artistPageFollowers').textContent = data.followers || 'Слухачі';
+            
+            const container = document.getElementById('artistTracks');
+            let html = '';
+            data.tracks.forEach((track, index) => {
+                const isLiked = favorites.includes(track.name);
+                html += `
+                    <div class="track-item" onclick="playTrackByName('${track.name}')">
+                        <div class="track-number">${index + 1}</div>
+                        <div class="track-info">
+                            <div class="name">${track.name}</div>
+                            <div class="details">${artistName}</div>
+                        </div>
+                        <div class="track-stats">
+                            <span class="views">${track.views || ''}</span>
+                            <span class="duration">${track.duration}</span>
+                        </div>
+                        <div class="track-actions">
+                            <button class="track-btn ${isLiked ? 'liked' : ''}" onclick="event.stopPropagation(); toggleFavoriteTrack('${track.name}')">${isLiked ? '❤️' : '🤍'}</button>
+                        </div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+            closeSidebar();
+        }
+        
+        // ==================== PLAYBACK ====================
+        function playTrackByName(name) {
+            const track = {
+                name: name,
+                artist: currentArtist || 'Виконавець',
+                duration: '3:30',
+                id: name
+            };
+            
+            currentTrackId = name;
+            isPlaying = true;
+            
+            // Відкриваємо на YouTube
+            window.open(`https://www.youtube.com/results?search_query=${encodeURIComponent(name + ' ' + (currentArtist || ''))}`, '_blank');
+            
+            updatePlayerUI(track);
+            updatePlayBtn();
+            showToast(`▶️ ${name}`);
+            
+            // Шукаємо текст
+            fetchLyrics(name);
+        }
+        
+        function playPodcast(name) {
+            showToast(`🎙️ Подкаст: ${name}`);
+            window.open(`https://www.youtube.com/results?search_query=${encodeURIComponent(name + ' подкаст')}`, '_blank');
+        }
+        
+        function togglePlay() {
+            if (!currentTrackId) {
+                showToast('Оберіть трек');
+                return;
+            }
+            showToast('▶️ Відтворення');
+        }
+        
+        function prevTrack() {
+            showToast('⏮ Попередній');
+        }
+        
+        function nextTrack() {
+            showToast('⏭ Наступний');
+        }
+        
+        function updatePlayerUI(track) {
+            document.getElementById('playerName').textContent = track.name || 'Не грає';
+            document.getElementById('playerArtist').textContent = track.artist || '—';
+            document.getElementById('playerThumb').src = 'https://via.placeholder.com/44/282828/1db954?text=🎵';
+            updateFavoriteBtn(track.id);
+        }
+        
+        function updatePlayBtn() {
+            document.getElementById('playBtn').textContent = isPlaying ? '⏸' : '▶';
+        }
+        
+        function updateFavoriteBtn(trackId) {
+            const isLiked = favorites.includes(trackId);
+            const btn = document.getElementById('playerLikeBtn');
+            if (btn) {
+                btn.textContent = isLiked ? '❤️' : '🤍';
+                btn.style.color = isLiked ? '#1db954' : '#888';
+            }
+        }
+        
+        function toggleFavorite() {
+            if (currentTrackId) {
+                toggleFavoriteTrack(currentTrackId);
+            }
+        }
+        
+        function toggleFavoriteTrack(trackId) {
+            if (!currentUser) return;
+            const idx = favorites.indexOf(trackId);
+            if (idx > -1) {
+                favorites.splice(idx, 1);
+                showToast('Видалено з улюблених');
+            } else {
+                favorites.push(trackId);
+                showToast('❤️ Додано в улюблене');
+            }
+            saveFavorites(currentUser, favorites);
+            updateFavoriteBtn(trackId);
+            
+            // Оновлюємо сторінку виконавця
+            if (currentArtist) {
+                showArtistPage(currentArtist);
+            }
+        }
+        
+        // ==================== SEARCH ====================
+        async function searchTracks() {
+            const query = document.getElementById('searchInput').value.trim();
+            if (!query) {
+                showToast('Введіть запит');
+                return;
+            }
+            
+            const container = document.getElementById('searchResults');
+            container.innerHTML = '<div class="loading" style="text-align:center;padding:20px;color:#888;">Пошук...</div>';
+            
+            try {
+                const searchUrl = `${YOUTUBE_API}/search?part=snippet&type=video&q=${encodeURIComponent(query)}&maxResults=10&key=${YOUTUBE_API_KEY}`;
+                const response = await fetch(searchUrl);
+                const data = await response.json();
+                
+                if (!data.items || data.items.length === 0) {
+                    container.innerHTML = `<div class="empty-state"><div class="icon">🔍</div><p>Нічого не знайдено</p></div>`;
+                    return;
+                }
+                
+                let html = `<div class="section-label">Результати пошуку</div>`;
+                data.items.forEach((item, index) => {
+                    const name = item.snippet.title;
+                    const artist = item.snippet.channelTitle;
+                    const isLiked = favorites.includes(name);
+                    html += `
+                        <div class="track-item" onclick="playSearchResult('${name.replace(/'/g, "\\'")}', '${artist.replace(/'/g, "\\'")}')">
+                            <div class="track-number">${index + 1}</div>
+                            <div class="track-info">
+                                <div class="name">${escapeHtml(name)}</div>
+                                <div class="details">${escapeHtml(artist)}</div>
+                            </div>
+                            <div class="track-actions">
+                                <button class="track-btn ${isLiked ? 'liked' : ''}" onclick="event.stopPropagation(); toggleFavoriteTrack('${name.replace(/'/g, "\\'")}')">${isLiked ? '❤️' : '🤍'}</button>
+                            </div>
+                        </div>
+                    `;
+                });
+                container.innerHTML = html;
+            } catch (error) {
+                container.innerHTML = `<div class="empty-state"><div class="icon">❌</div><p>Помилка пошуку</p></div>`;
+            }
+        }
+        
+        function playSearchResult(name, artist) {
+            currentArtist = artist;
+            playTrackByName(name);
+        }
+        
+        // ==================== LYRICS ====================
+        async function fetchLyrics(trackName) {
+            const section = document.getElementById('lyricsSection');
+            const content = document.getElementById('lyricsContent');
+            
+            try {
+                const response = await fetch(`https://api.lyrics.ovh/v1/${encodeURIComponent(currentArtist || 'unknown')}/${encodeURIComponent(trackName)}`);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.lyrics) {
+                        content.innerHTML = `<div class="highlight">${escapeHtml(data.lyrics)}</div>`;
+                        section.classList.add('show');
+                        return;
+                    }
+                }
+                
+                content.innerHTML = `<div class="no-lyrics">📝 Текст не знайдено для "${trackName}"</div>`;
+                section.classList.add('show');
+            } catch (error) {
+                content.innerHTML = `<div class="no-lyrics">📝 Текст недоступний</div>`;
+                section.classList.add('show');
+            }
+        }
+        
+        function toggleLyrics() {
+            document.getElementById('lyricsSection').classList.toggle('show');
+        }
+        
+        function closeLyrics() {
+            document.getElementById('lyricsSection').classList.remove('show');
+        }
+        
+        // ==================== UTILITY ====================
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        // ==================== AUDIO EVENTS ====================
+        setInterval(() => {
+            const fill = document.getElementById('progressFill');
+            const current = document.getElementById('currentTime');
+            if (fill) {
+                const val = Math.random() * 100;
+                fill.style.width = val + '%';
+                current.textContent = formatTime(val / 100 * 180);
+            }
+        }, 1000);
+        
+        function formatTime(seconds) {
+            const m = Math.floor(seconds / 60);
+            const s = Math.floor(seconds % 60);
+            return `${m}:${s.toString().padStart(2, '0')}`;
+        }
+        
+        // ==================== INIT ====================
+        const session = localStorage.getItem('spotify_session');
+        if (session && getUsers()[session]) {
+            currentUser = session;
+            document.getElementById('authOverlay').style.display = 'none';
+            document.getElementById('app').classList.add('active');
+            document.getElementById('userNameDisplay').textContent = currentUser;
+            document.getElementById('userAvatar').textContent = currentUser[0].toUpperCase();
+            favorites = getFavorites(currentUser);
+            showHome();
+        }
+        
+        console.log('🎵 Spotify Clone loaded! Як на скріншоті');
+    </script>
+</body>
+</html>
             --fresfy-transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
             --sidebar-width: 230px;
             --player-height: 90px;
